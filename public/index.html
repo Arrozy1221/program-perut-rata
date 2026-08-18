@@ -145,6 +145,38 @@
     font-family:var(--display);font-size:17px;font-weight:600;color:var(--chili);
     font-variant-numeric:tabular-nums;flex-shrink:0;letter-spacing:.02em;padding-top:1px;
   }
+  .skipb{
+    background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;
+    font-family:var(--body);font-size:11px;font-weight:600;cursor:pointer;color:var(--stone);
+    flex-shrink:0;align-self:center;
+  }
+  .skipb:hover{border-color:var(--chili);color:var(--chili)}
+  .task.skip{background:#F4F5F1;border-style:dashed;cursor:default}
+  .task.skip:hover{border-color:var(--line)}
+  .task.skip .time,.task.skip .tx .t,.task.skip .tx .d{color:var(--stone)}
+  .task.skip .box{visibility:hidden}
+
+  /* latihan kelewat */
+  .miss{
+    display:flex;align-items:center;gap:12px;
+    background:var(--turmeric-dim);border:1px solid #EBD9AF;border-radius:var(--r);padding:12px 14px;
+  }
+  .miss + .miss{margin-top:7px}
+  .miss .mi{flex:1;min-width:0}
+  .miss .t{
+    font-family:var(--display);font-size:17px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.04em;line-height:1.1;
+  }
+  .miss .d{font-size:11.5px;color:#8A6316;margin-top:3px}
+  .mact{display:flex;gap:6px;flex-shrink:0}
+  .mbtn{
+    background:#fff;border:1px solid #EBD9AF;border-radius:8px;padding:7px 11px;
+    font-family:var(--body);font-size:11.5px;font-weight:600;cursor:pointer;color:#8A6316;
+    white-space:nowrap;
+  }
+  .mbtn:hover{border-color:var(--turmeric)}
+  .mbtn.go{background:var(--turmeric);border-color:var(--turmeric);color:#3B2A05;font-weight:700}
+  .mbtn.go:hover{background:#DB9A2C}
 
   /* meal */
   .meal{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
@@ -302,6 +334,7 @@
   .bar>div{height:100%;border-radius:99px;transition:width .3s}
   .fillk{background:var(--chili);width:0}
   .fillp{background:var(--jade);width:0}
+  .fillc{background:var(--jade);width:0}
   .brow{display:flex;justify-content:space-between;font-size:12.5px;margin-top:6px;color:var(--ink-soft)}
   .brow b{font-variant-numeric:tabular-nums}
   .verd{margin-top:12px;padding:10px 12px;border-radius:9px;font-size:13px;font-weight:500;background:#F2F4EF;color:var(--ink-soft)}
@@ -350,6 +383,9 @@
     h1{font-size:28px}
     .banner .val{font-size:23px}
     .gl{width:30px;height:38px}
+    .miss{flex-wrap:wrap}
+    .mact{width:100%}
+    .mact .mbtn{flex:1}
   }
 </style>
 
@@ -398,6 +434,8 @@
       <div class="cur" id="curD">—<small>—</small></div>
       <button id="nextD" aria-label="Hari berikutnya">›</button>
     </div>
+
+    <div id="missed"></div>
 
     <div class="h2">Jadwal &amp; Checklist</div>
     <div id="tasks"></div>
@@ -476,6 +514,9 @@
       <div class="st"><div class="v" id="sD">—</div><div class="k">Turun kg</div></div>
       <div class="st"><div class="v" id="sP">—</div><div class="k">Perut cm</div></div>
     </div>
+
+    <div class="h2">Konsistensi</div>
+    <div class="card" id="konsCard"></div>
 
     <div class="h2">Catat Ukuran</div>
     <div class="card">
@@ -795,6 +836,8 @@ const FOOD=[
 ].map(x=>({n:x[0],k:x[1],p:x[2],c:x[3]}));
 const KATEGORI=[...new Set(FOOD.map(f=>f.c))];
 const TARGET_K=1700, TARGET_P=125;
+const TARGET_PCT=70;               // ambang sebuah hari dihitung konsisten
+const SUSUL_HARI=5, SUSUL_MAX=2;   // batas kartu "latihan yang kelewat"
 
 function schedule(dow){
 
@@ -846,6 +889,7 @@ const fmt=d=>HARI[d.getDay()]+", "+d.getDate()+" "+BULAN[d.getMonth()]+" "+d.get
 const $=s=>document.querySelector(s);
 
 function day(k){ if(!ST.days[k]) ST.days[k]={c:{},w:0,m:{}}; return ST.days[k]; }
+function skips(k){ const dd=day(k); if(!dd.s) dd.s={}; return dd.s; }
 
 /* ===== PENYIMPANAN =====
    Urutan: server (kalau kode akses diisi) -> localStorage -> memori. */
@@ -922,8 +966,11 @@ function dayPct(k){
   const dw=parseYmd(k).getDay();
   const tasks=schedule(dw);
   const dd=ST.days[k]; if(!dd) return 0;
-  let n=0; tasks.forEach(t=>{ if(dd.c[t.id]) n++; });
-  return Math.round(n/tasks.length*100);
+  const sk=dd.s||{};
+  const aktif=tasks.filter(t=>!sk[t.id]);          // yang dilewati keluar dari pembagi
+  if(!aktif.length) return 0;                      // semua dilewati bukan berarti hari penuh
+  let n=0; aktif.forEach(t=>{ if(dd.c[t.id]) n++; });
+  return Math.round(n/aktif.length*100);
 }
 
 function renderTrack(){
@@ -933,7 +980,7 @@ function renderTrack(){
   for(let i=1;i<=90;i++){
     const d=new Date(s); d.setDate(s.getDate()+i-1);
     const el=document.createElement("div"); el.className="seg";
-    if(dayPct(ymd(d))>=70) el.classList.add("done");
+    if(dayPct(ymd(d))>=TARGET_PCT) el.classList.add("done");
     if(i===idx) el.classList.add("today");
     el.title="Hari "+i;
     t.appendChild(el);
@@ -944,6 +991,48 @@ function renderTrack(){
   $("#tlEnd").textContent=e.getDate()+" "+BULAN[e.getMonth()];
 }
 
+/* ===== LATIHAN YANG KELEWAT ===== */
+function latihanKelewat(){
+  const out=[], mulai=parseYmd(ST.settings.start);
+  const ini=new Date(); ini.setHours(0,0,0,0);
+  for(let i=1;i<=SUSUL_HARI;i++){
+    const d=new Date(cur); d.setDate(cur.getDate()-i);
+    if(d<mulai) break;                                         // di luar program
+    if(d>=ini) continue;                                       // belum benar-benar lewat
+    const k=ymd(d), dd=ST.days[k];
+    if(dd && (dd.c.latihan || (dd.s&&dd.s.latihan))) continue; // sudah dikerjakan / sudah dilewati
+    if(!schedule(d.getDay()).some(t=>t.id==="latihan")) continue;
+    const sel=Math.round((ini-d)/86400000);
+    out.push({k, d, lab: sel===1?"kemarin":sel+" hari lalu"});
+    if(out.length>=SUSUL_MAX) break;
+  }
+  return out;
+}
+function renderMissed(){
+  const box=$("#missed"); box.innerHTML="";
+  latihanKelewat().forEach((o,i)=>{
+    if(i===0){
+      const h=document.createElement("div"); h.className="h2";
+      h.textContent="Latihan yang kelewat";
+      box.appendChild(h);
+    }
+    const pr=PROGRAM[o.d.getDay()];
+    const el=document.createElement("div"); el.className="miss";
+    el.innerHTML=`<div class="mi">
+        <div class="t">${pr.type}</div>
+        <div class="d">${HARI[o.d.getDay()]}, ${o.d.getDate()} ${BULAN[o.d.getMonth()]} · ${o.lab}</div>
+      </div>
+      <div class="mact">
+        <button class="mbtn go" type="button">Susul</button>
+        <button class="mbtn" type="button">Lewati</button>
+      </div>`;
+    const [susul,lewati]=el.querySelectorAll(".mbtn");
+    susul.onclick=()=>{ day(o.k).c.latihan=true; save(); renderToday(); renderTrack(); renderKons(); };
+    lewati.onclick=()=>{ skips(o.k).latihan=true; save(); renderToday(); renderTrack(); renderKons(); };
+    box.appendChild(el);
+  });
+}
+
 function renderToday(){
   const k=ymd(cur), dw=cur.getDay(), pr=PROGRAM[dw];
   $("#tdDate").textContent=HARI[dw]+" · "+cur.getDate()+" "+BULAN[cur.getMonth()];
@@ -952,18 +1041,28 @@ function renderToday(){
   $("#curD").innerHTML=fmt(cur)+"<small>ketuk ‹ › untuk pindah hari</small>";
   $("#tdPct").textContent=dayPct(k)+"%";
 
-  const tasks=schedule(dw), dd=day(k), box=$("#tasks"); box.innerHTML="";
+  renderMissed();
+
+  const tasks=schedule(dw), dd=day(k), sk=skips(k), box=$("#tasks"); box.innerHTML="";
   tasks.forEach(t=>{
-    const on=!!dd.c[t.id];
+    const lewat=!!sk[t.id], on=!lewat&&!!dd.c[t.id];
     const el=document.createElement("div");
-    el.className="task"+(on?" on":"");
+    el.className="task"+(lewat?" skip":on?" on":"");
     el.tabIndex=0; el.setAttribute("role","checkbox"); el.setAttribute("aria-checked",on);
+    if(lewat) el.setAttribute("aria-disabled","true");
     el.innerHTML=`<div class="time">${t.tm}</div>
       <div class="box"><svg viewBox="0 0 12 12" fill="none"><path d="M1 6l3.2 3.2L11 2.4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="tx"><div class="t">${t.t}</div>${t.d?`<div class="d">${t.d}</div>`:""}</div>`;
-    const tog=()=>{ dd.c[t.id]=!dd.c[t.id]; save(); renderToday(); renderTrack(); };
+      <div class="tx"><div class="t">${t.t}</div>${t.d?`<div class="d">${t.d}</div>`:""}</div>
+      <button class="skipb" type="button" aria-label="${lewat?"Batalkan lewati":"Lewati"} ${t.t}">${lewat?"Batal":"Lewati"}</button>`;
+    const tog=()=>{ if(lewat) return; dd.c[t.id]=!dd.c[t.id]; save(); renderToday(); renderTrack(); renderKons(); };
     el.onclick=tog;
     el.onkeydown=ev=>{ if(ev.key===" "||ev.key==="Enter"){ ev.preventDefault(); tog(); } };
+    el.querySelector(".skipb").onclick=ev=>{
+      ev.stopPropagation();
+      if(lewat) delete sk[t.id];
+      else { sk[t.id]=true; delete dd.c[t.id]; }               // dilewati, jadi tidak ikut dihitung
+      save(); renderToday(); renderTrack(); renderKons();
+    };
     box.appendChild(el);
   });
 
@@ -1027,7 +1126,7 @@ function toggleEx(name){
   dd.ex[name]=!dd.ex[name];
   const list=todayEx();
   dd.c.latihan = list.every(x=>dd.ex[x]);   // auto-centang jadwal latihan
-  save(); renderTrain(); renderToday(); renderTrack();
+  save(); renderTrain(); renderToday(); renderTrack(); renderKons();
 }
 
 /* ===== KALKULATOR MENU CUSTOM ===== */
@@ -1180,6 +1279,35 @@ function openGuide(name){
 $("#gClose").onclick=()=>$("#gmodal").hidden=true;
 $("#gmodal").onclick=e=>{ if(e.target.id==="gmodal") $("#gmodal").hidden=true; };
 
+/* konsistensi: berapa persen hari yang checklist-nya tembus ambang */
+function konsistensi(n){
+  const ini=new Date(); ini.setHours(0,0,0,0);
+  const mulai=parseYmd(ST.settings.start);
+  let total=0, ok=0;
+  for(let i=0;i<n;i++){
+    const d=new Date(ini); d.setDate(ini.getDate()-i);
+    if(d<mulai) break;                       // program belum jalan sejauh itu
+    total++;
+    if(dayPct(ymd(d))>=TARGET_PCT) ok++;
+  }
+  return {total, ok, pct: total?Math.round(ok/total*100):0};
+}
+function renderKons(){
+  const c=$("#konsCard");
+  const w=konsistensi(7), m=konsistensi(30);
+  if(!w.total){ c.innerHTML='<div class="empty">Program belum mulai. Atur tanggal mulai di Pengaturan.</div>'; return; }
+  const row=(lab,o)=>`<div class="bar" style="margin-top:11px"><div class="fillc" style="width:${o.pct}%"></div></div>
+    <div class="brow"><span>${lab}</span><b>${o.pct}% · ${o.ok}/${o.total} hari</b></div>`;
+  let v="verd", txt="";
+  if(w.total<3){ txt="Program baru jalan. Angkanya mulai berarti setelah seminggu."; }
+  else if(w.pct>=TARGET_PCT){ v+=" ok"; txt="Ritmenya terjaga. Ini yang bikin hasilnya kelihatan."; }
+  else if(w.pct>=40){ txt="Setengah jalan. Kejar satu hari lagi minggu ini."; }
+  else{ v+=" low"; txt="Minggu ini banyak bolong. Mulai dari yang paling gampang: latihan pagi."; }
+  c.innerHTML=`<div style="font-size:13px;color:var(--ink-soft)">Sebuah hari dihitung konsisten kalau checklist-nya tembus <b>${TARGET_PCT}%</b>. Item yang dilewati tidak ikut dihitung.</div>
+    ${row("7 hari terakhir",w)}${row("30 hari terakhir",m)}
+    <div class="${v}">${txt}</div>`;
+}
+
 /* progres */
 function renderProg(){
   const logs=[...ST.logs].sort((a,b)=>a.d.localeCompare(b.d));
@@ -1224,6 +1352,7 @@ function renderProg(){
   }
   $("#iStart").value=ST.settings.start;
   $("#iGoal").value=ST.settings.goal;
+  renderKons();
 }
 
 function renderAll(){ renderTrack(); renderToday(); renderMenu(); renderCustom(); renderTrain(); renderProg(); }
