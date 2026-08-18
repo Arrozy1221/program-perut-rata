@@ -1,0 +1,9 @@
+{
+  "name": "Program 90 Hari — Perut Rata",
+  "short_name": "Perut Rata",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EDEEE8",
+  "theme_color": "#101614",
+  "icons": []
+}

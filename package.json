@@ -1,0 +1,7 @@
+{
+  "name": "program-perut-rata",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Program 90 hari mengecilkan perut - jadwal harian, menu, latihan, dan progres",
+  "engines": { "node": ">=18" }
+}
