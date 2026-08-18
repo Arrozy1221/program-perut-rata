@@ -547,9 +547,9 @@
 
     <div class="h2">Sinkronisasi Antar Perangkat</div>
     <div class="card">
-      <div style="font-size:13px;color:var(--ink-soft)">Isi kode akses yang sama di HP dan laptop supaya datanya menyatu. Bebas pilih sendiri, misalnya <b>mst-2026</b>. Simpan baik-baik — siapa pun yang tahu kodenya bisa melihat datamu.</div>
+      <div style="font-size:13px;color:var(--ink-soft)">Isi kode akses yang sama di HP dan laptop supaya datanya menyatu. Bebas pilih sendiri, misalnya <b>mst-2026</b>. Huruf besar dan kecil dianggap sama. Simpan baik-baik — siapa pun yang tahu kodenya bisa melihat datamu.</div>
       <div class="frow">
-        <div class="fld" style="flex:2"><label class="lb" for="iCode">Kode akses</label><input type="text" id="iCode" placeholder="mst-2026" autocomplete="off" spellcheck="false"></div>
+        <div class="fld" style="flex:2"><label class="lb" for="iCode">Kode akses</label><input type="text" id="iCode" placeholder="mst-2026" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
       </div>
       <button class="btn" id="saveCode" style="margin-top:11px;width:100%">Aktifkan sinkronisasi</button>
       <button class="btn ghost" id="pullNow" style="margin-top:7px;width:100%">Ambil data terbaru dari server</button>
@@ -894,8 +894,13 @@ function skips(k){ const dd=day(k); if(!dd.s) dd.s={}; return dd.s; }
 /* ===== PENYIMPANAN =====
    Urutan: server (kalau kode akses diisi) -> localStorage -> memori. */
 let MODE="lokal";
-const codeGet=()=>{ try{ return localStorage.getItem("bp:code")||""; }catch(e){ return ""; } };
-const codeSet=v=>{ try{ localStorage.setItem("bp:code",v); }catch(e){} };
+const CODE_RE=/^[a-z0-9_-]{4,40}$/;
+const CODE_ERR="Kode akses: 4\u201340 karakter, boleh huruf, angka, - dan _ saja.";
+/* disamakan ke huruf kecil supaya kode dari keyboard HP (yang suka
+   mengawali dengan huruf besar) tetap menunjuk data yang sama. */
+const normCode=v=>String(v||"").trim().toLowerCase();
+const codeGet=()=>{ try{ return normCode(localStorage.getItem("bp:code")); }catch(e){ return ""; } };
+const codeSet=v=>{ try{ localStorage.setItem("bp:code",normCode(v)); }catch(e){} };
 
 function setMode(m){
   MODE=m;
@@ -1413,11 +1418,9 @@ $("#saveSet").onclick=()=>{
   save(); renderAll();
 };
 $("#saveCode").onclick=async()=>{
-  const c=$("#iCode").value.trim();
-  if(c && !/^[a-zA-Z0-9_-]{4,40}$/.test(c)){
-    alert("Kode akses: 4–40 karakter, boleh huruf, angka, - dan _ saja."); return;
-  }
-  codeSet(c);
+  const c=normCode($("#iCode").value);
+  if(c && !CODE_RE.test(c)){ alert(CODE_ERR); return; }
+  codeSet(c); $("#iCode").value=c;          // tampilkan bentuk yang benar-benar dipakai
   if(!c){ setMode("lokal"); alert("Sinkronisasi dimatikan. Data tetap tersimpan di perangkat ini."); return; }
   try{
     const remote=await apiGet();
@@ -1432,7 +1435,13 @@ $("#saveCode").onclick=async()=>{
   }catch(e){ setMode("lokal"); alert("Belum bisa terhubung ke server. Data tetap tersimpan di perangkat ini."); }
 };
 $("#pullNow").onclick=async()=>{
-  if(!codeGet()){ alert("Isi kode akses dulu."); return; }
+  if(!codeGet()){
+    // kode sudah diketik tapi belum ditekan "Aktifkan sinkronisasi"
+    const c=normCode($("#iCode").value);
+    if(!c){ alert("Isi kode akses dulu, lalu ketuk Aktifkan sinkronisasi."); return; }
+    if(!CODE_RE.test(c)){ alert(CODE_ERR); return; }
+    codeSet(c); $("#iCode").value=c;
+  }
   try{
     const r=await apiGet();
     if(!r){ alert("Belum ada data di server untuk kode ini."); return; }
