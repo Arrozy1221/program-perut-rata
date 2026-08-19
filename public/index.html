@@ -156,6 +156,49 @@
   .task.skip .time,.task.skip .tx .t,.task.skip .tx .d{color:var(--stone)}
   .task.skip .box{visibility:hidden}
 
+  /* rincian menu & latihan di baris jadwal */
+  .task.hasdet{border-radius:var(--r) var(--r) 0 0}
+  .tdet{
+    background:#FBFCF9;border:1px solid var(--line);border-top:0;
+    border-radius:0 0 var(--r) var(--r);padding:11px 14px;
+  }
+  .tdet + .task{margin-top:7px}
+  .dlab{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
+  .dtit{font-weight:600;font-size:13.5px;line-height:1.4;margin-top:4px}
+  .dit{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px}
+  .dit + .dit{border-top:1px solid #EAEBE5}
+  .dn{flex:1;min-width:0}
+  .dn small{color:var(--stone)}
+  .dk{color:var(--stone);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .dx{background:none;border:0;color:var(--stone);cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0}
+  .dx:hover{color:var(--chili)}
+  .dact{display:flex;gap:6px;margin-top:9px}
+  .dbtn{
+    flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px;
+    font-family:var(--body);font-size:11.5px;font-weight:600;cursor:pointer;color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .dbtn:hover{border-color:var(--ink)}
+  .dbtn.go{background:var(--jade);border-color:var(--jade);color:#fff}
+  .dbtn.go:hover{background:#17594C}
+  .dhead{display:flex;align-items:center;gap:10px}
+  .dhead .dbtn{flex:0 0 auto}
+  .dsum{font-weight:600;font-size:13.5px;margin-top:3px}
+  .xadd{display:flex;gap:6px;padding:10px 13px;background:#F7F8F4;border-top:1px solid var(--line)}
+  .xadd input{
+    padding:8px 9px;border:1px solid var(--line);border-radius:8px;
+    font-family:var(--body);font-size:13px;background:#fff;color:var(--ink);min-width:0;
+  }
+  .xadd .xn{flex:1}
+  .xadd .xm{width:76px}
+  .xadd .dbtn{flex:0 0 auto}
+  .orow{
+    display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-soft);
+    margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);
+  }
+  .orow b{font-variant-numeric:tabular-nums}
+  .dnote{font-size:11.5px;color:var(--stone);margin-top:9px;line-height:1.45}
+
   /* latihan kelewat */
   .miss{
     display:flex;align-items:center;gap:12px;
@@ -386,6 +429,8 @@
     .miss{flex-wrap:wrap}
     .mact{width:100%}
     .mact .mbtn{flex:1}
+    .xadd{flex-wrap:wrap}
+    .xadd .xn{flex:1 1 100%}
   }
 </style>
 
@@ -436,6 +481,9 @@
     </div>
 
     <div id="missed"></div>
+
+    <div class="h2">Ringkasan Hari Ini</div>
+    <div class="card" id="sumCard"></div>
 
     <div class="h2">Jadwal &amp; Checklist</div>
     <div id="tasks"></div>
@@ -575,6 +623,18 @@
   <div class="gcard">
     <div class="ghead"><div class="nm2" id="gName">—</div><button class="gx" id="gClose" aria-label="Tutup">✕</button></div>
     <div class="gscroll" id="gBody"></div>
+  </div>
+</div>
+
+<!-- pilih makanan -->
+<div class="modal" id="fmodal" hidden>
+  <div class="gcard">
+    <div class="ghead"><div class="nm2" id="fmTitle">Tambah makanan</div><button class="gx" id="fmClose" aria-label="Tutup">✕</button></div>
+    <div class="gscroll">
+      <input type="search" id="fmSearch" placeholder="Cari makanan… misal: ayam, nasi, tempe" style="width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;font-family:var(--body);font-size:15px">
+      <div class="cats" id="fmCats"></div>
+      <div id="fmList" class="flist"></div>
+    </div>
   </div>
 </div>
 
@@ -1038,6 +1098,171 @@ function renderMissed(){
   });
 }
 
+/* ===== RINCIAN MAKAN & LATIHAN DI JADWAL ===== */
+function slotItems(id){                      // makanan yang dicatat sendiri untuk slot ini
+  const m=mealBy(id);
+  return eatenList().map((x,i)=>({x,i})).filter(o=>o.x.s===m.lab);
+}
+function slotGizi(id){
+  const own=slotItems(id);
+  if(own.length){
+    let k=0,p=0;
+    own.forEach(o=>{ const f=foodBy(o.x.n); if(f){ k+=f.k*o.x.q; p+=f.p*o.x.q; } });
+    return {k,p,sendiri:true};
+  }
+  const dd=day(ymd(cur));
+  if(dd.c[id] && !(dd.s||{})[id]){           // saran dihitung setelah barisnya dicentang
+    const m=mealBy(id), s=pick(m.arr,m.slot);
+    return {k:s.k,p:s.p,sendiri:false};
+  }
+  return {k:0,p:0,sendiri:false};
+}
+function totalGizi(){
+  let k=0,p=0;
+  MEALS.forEach(m=>{ const g=slotGizi(m.id); k+=g.k; p+=g.p; });
+  return {k:Math.round(k), p:Math.round(p)};
+}
+function exStat(){
+  const dd=day(ymd(cur)); if(!dd.ex) dd.ex={};
+  let done=0, total=0, menit=0;
+  PROGRAM[cur.getDay()].blocks.forEach(b=>b.ex.forEach(e=>{
+    total++;
+    if(dd.ex[e.n]){ done++; if(e.s) menit+=e.s/60; }
+  }));
+  (dd.xe||[]).forEach(x=>{ total++; if(x.on){ done++; menit+=(+x.m||0); } });
+  menit=Math.round(menit);
+  // sebagian besar gerakan dihitung repetisi, bukan waktu — angka menit
+  // kecil lebih menyesatkan daripada berguna, jadi disembunyikan.
+  return {done, total, menit: menit>=5?menit:0};
+}
+
+function renderSum(){
+  const g=totalGizi(), x=exStat();
+  $("#sumCard").innerHTML=`<div class="bar"><div class="fillk" style="width:${Math.min(100,g.k/TARGET_K*100)}%"></div></div>
+    <div class="brow"><span>Kalori masuk</span><b>${g.k} / ${TARGET_K} kkal</b></div>
+    <div class="bar" style="margin-top:11px"><div class="fillp" style="width:${Math.min(100,g.p/TARGET_P*100)}%"></div></div>
+    <div class="brow"><span>Protein</span><b>${g.p} / ${TARGET_P} g</b></div>
+    <div class="orow"><span>Olahraga</span><b>${x.done}/${x.total} gerakan${x.menit?` · ${x.menit} menit`:""}</b></div>
+    <div class="dnote">Menu saran ikut dihitung setelah baris makannya dicentang. Makanan yang kamu catat sendiri selalu dihitung.</div>`;
+}
+
+function mealDetail(m){
+  const dd=day(ymd(cur)), el=document.createElement("div"); el.className="tdet";
+  const own=slotItems(m.id);
+  if(own.length){
+    let k=0,p=0;
+    own.forEach(o=>{ const f=foodBy(o.x.n); if(f){ k+=f.k*o.x.q; p+=f.p*o.x.q; } });
+    el.innerHTML=`<div class="dlab">Dicatat sendiri</div>`
+      +own.map(o=>{ const f=foodBy(o.x.n);
+        return `<div class="dit"><span class="dn">${o.x.n}${o.x.q!==1?` <small>×${o.x.q}</small>`:""}</span>
+          <span class="dk">${f?Math.round(f.k*o.x.q):0} kkal</span>
+          <button class="dx" type="button" aria-label="Hapus ${o.x.n}">✕</button></div>`; }).join("")
+      +`<div class="macros"><span class="chip">${Math.round(k)} kkal</span><span class="chip p">${Math.round(p)} g protein</span></div>
+        <div class="dact"><button class="dbtn go" type="button">+ Tambah</button><button class="dbtn" type="button">Pakai saran</button></div>`;
+    el.querySelectorAll(".dx").forEach((b,i)=>b.onclick=()=>{
+      eatenList().splice(own[i].i,1); save(); renderCustom(); renderToday();
+    });
+    const [tambah,saran]=el.querySelectorAll(".dbtn");
+    tambah.onclick=()=>openFood(m.lab);
+    saran.onclick=()=>{
+      if(!confirm("Hapus catatan makanan "+m.lab+" dan kembali ke menu saran?")) return;
+      const e=eatenList();
+      for(let i=e.length-1;i>=0;i--) if(e[i].s===m.lab) e.splice(i,1);
+      save(); renderCustom(); renderToday();
+    };
+  }else{
+    const s=pick(m.arr,m.slot);
+    el.innerHTML=`<div class="dlab">Saran menu</div>
+      <div class="dtit">${s.t}</div>
+      <div class="macros"><span class="chip">${s.k} kkal</span><span class="chip p">${s.p} g protein</span></div>
+      <div class="dact"><button class="dbtn" type="button">↻ Ganti saran</button><button class="dbtn go" type="button">Isi sendiri</button></div>`;
+    const [ganti,sendiri]=el.querySelectorAll(".dbtn");
+    ganti.onclick=()=>{ dd.m[m.slot]=(dd.m[m.slot]||0)+1; save(); renderMenu(); renderToday(); };
+    sendiri.onclick=()=>openFood(m.lab);
+  }
+  return el;
+}
+
+let exOpen=false;
+function exDetail(){
+  const dd=day(ymd(cur)); if(!dd.ex) dd.ex={}; if(!dd.xe) dd.xe=[];
+  const st=exStat(), pr=PROGRAM[cur.getDay()];
+  const el=document.createElement("div"); el.className="tdet";
+  el.innerHTML=`<div class="dhead">
+      <div style="flex:1;min-width:0">
+        <div class="dlab">${pr.type}</div>
+        <div class="dsum">${st.done}/${st.total} gerakan${st.menit?` · ${st.menit} menit`:""}</div>
+      </div>
+      <button class="dbtn tgl" type="button">${exOpen?"Tutup":"Buka"}</button>
+    </div>`;
+  el.querySelector(".tgl").onclick=()=>{ exOpen=!exOpen; renderToday(); };
+  if(!exOpen) return el;
+
+  pr.blocks.forEach(bl=>{
+    const c=document.createElement("div"); c.className="exlist"; c.style.margin="9px 0 0";
+    c.innerHTML=`<div class="exhead"><div class="n">${bl.n}</div><div class="r">${bl.r}</div></div>`;
+    bl.ex.forEach(e=>c.appendChild(exRow(e,true)));
+    el.appendChild(c);
+  });
+
+  const c=document.createElement("div"); c.className="exlist"; c.style.margin="9px 0 0";
+  c.innerHTML=`<div class="exhead"><div class="n">Sendiri</div><div class="r">olahraga di luar program</div></div>`;
+  dd.xe.forEach((x,i)=>{
+    const row=document.createElement("div"); row.className="ex"+(x.on?" exon":"");
+    row.innerHTML=`<button class="exbox${x.on?" on":""}" type="button" aria-label="Tandai selesai"><svg viewBox="0 0 12 12" fill="none"><path d="M1 6l3.2 3.2L11 2.4" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="en">${x.n}</div>
+      <div class="er">${x.m?x.m+" menit":"—"}</div>
+      <button class="dx" type="button" aria-label="Hapus ${x.n}">✕</button>`;
+    row.querySelector(".exbox").onclick=()=>{ x.on=!x.on; save(); renderToday(); };
+    row.querySelector(".dx").onclick=()=>{ dd.xe.splice(i,1); save(); renderToday(); };
+    c.appendChild(row);
+  });
+  const f=document.createElement("div"); f.className="xadd";
+  f.innerHTML=`<input type="text" class="xn" placeholder="Nama olahraga" autocomplete="off">
+    <input type="number" class="xm" placeholder="menit" min="0" step="5">
+    <button class="dbtn go" type="button">Tambah</button>`;
+  f.querySelector(".dbtn").onclick=()=>{
+    const n=f.querySelector(".xn").value.trim();
+    if(!n){ alert("Isi nama olahraganya dulu."); return; }
+    const mnt=parseInt(f.querySelector(".xm").value,10);
+    dd.xe.push({n, m:isNaN(mnt)?0:mnt, on:true});
+    save(); renderToday();
+  };
+  c.appendChild(f);
+  el.appendChild(c);
+  return el;
+}
+
+/* ===== PILIH MAKANAN (dipakai dari jadwal) ===== */
+let fmSlot=null, fmCat="Semua", fmQ="";
+function openFood(slot){
+  fmSlot=slot; fmCat="Semua"; fmQ=""; $("#fmSearch").value="";
+  $("#fmTitle").textContent=slot;
+  renderFm(); $("#fmodal").hidden=false;
+}
+function renderFm(){
+  const cb=$("#fmCats"); cb.innerHTML="";
+  ["Semua",...KATEGORI].forEach(c=>{
+    const b=document.createElement("button");
+    b.textContent=c; if(c===fmCat) b.classList.add("on");
+    b.onclick=()=>{ fmCat=c; renderFm(); };
+    cb.appendChild(b);
+  });
+  const q=fmQ.toLowerCase();
+  const list=FOOD.filter(f=>(fmCat==="Semua"||f.c===fmCat)&&(!q||f.n.toLowerCase().includes(q)));
+  const fl=$("#fmList"); fl.innerHTML="";
+  if(!list.length){ fl.innerHTML='<div class="empty">Tidak ketemu. Coba kata lain, atau pilih yang paling mirip.</div>'; return; }
+  list.slice(0,120).forEach(f=>{
+    const el=document.createElement("div"); el.className="fi";
+    el.innerHTML=`<div class="fn">${f.n}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
+    el.onclick=()=>addFood(f.n,fmSlot);
+    fl.appendChild(el);
+  });
+}
+$("#fmSearch").oninput=e=>{ fmQ=e.target.value; renderFm(); };
+$("#fmClose").onclick=()=>$("#fmodal").hidden=true;
+$("#fmodal").onclick=e=>{ if(e.target.id==="fmodal") $("#fmodal").hidden=true; };
+
 function renderToday(){
   const k=ymd(cur), dw=cur.getDay(), pr=PROGRAM[dw];
   $("#tdDate").textContent=HARI[dw]+" · "+cur.getDate()+" "+BULAN[cur.getMonth()];
@@ -1069,7 +1294,14 @@ function renderToday(){
       save(); renderToday(); renderTrack(); renderKons();
     };
     box.appendChild(el);
+
+    if(lewat) return;                          // baris yang dilewati tidak perlu rincian
+    const md=mealBy(t.id);
+    if(md){ el.classList.add("hasdet"); box.appendChild(mealDetail(md)); }
+    else if(t.id==="latihan"){ el.classList.add("hasdet"); box.appendChild(exDetail()); }
   });
+
+  renderSum();
 
   const g=$("#glasses"); g.innerHTML=""; $("#wCount").textContent=(dd.w||0)+"/8";
   for(let i=1;i<=8;i++){
@@ -1136,22 +1368,30 @@ function toggleEx(name){
 
 /* ===== KALKULATOR MENU CUSTOM ===== */
 const SLOTS=["Sarapan","Siang","Snack","Malam"];
+/* jembatan antara baris jadwal, slot menu saran, dan slot kalkulator */
+const MEALS=[
+  {id:"sarapan",slot:"b",lab:"Sarapan",arr:B},
+  {id:"siang",  slot:"l",lab:"Siang",  arr:L},
+  {id:"snack",  slot:"s",lab:"Snack",  arr:S},
+  {id:"malam",  slot:"d",lab:"Malam",  arr:D}
+];
+const mealBy=id=>MEALS.find(m=>m.id===id);
 let fCat="Semua", fQ="";
 
 function eatenList(){ const dd=day(ymd(cur)); if(!dd.eat) dd.eat=[]; return dd.eat; }
-function addFood(name){
+function addFood(name,slot){
   const dd=day(ymd(cur)); if(!dd.eat) dd.eat=[];
   const h=new Date().getHours();
-  const slot = h<10?"Sarapan": h<15?"Siang": h<17?"Snack":"Malam";
-  const ex=dd.eat.find(x=>x.n===name && x.s===slot);
-  if(ex) ex.q=+(ex.q+1).toFixed(1); else dd.eat.push({n:name,q:1,s:slot});
-  save(); renderCustom();
+  const s = slot || (h<10?"Sarapan": h<15?"Siang": h<17?"Snack":"Malam");
+  const ex=dd.eat.find(x=>x.n===name && x.s===s);
+  if(ex) ex.q=+(ex.q+1).toFixed(1); else dd.eat.push({n:name,q:1,s});
+  save(); renderCustom(); renderToday();
 }
 function chgQty(i,d){
   const e=eatenList();
   e[i].q=+(e[i].q+d).toFixed(1);
   if(e[i].q<=0) e.splice(i,1);
-  save(); renderCustom();
+  save(); renderCustom(); renderToday();
 }
 function foodBy(n){ return FOOD.find(f=>f.n===n); }
 
@@ -1228,9 +1468,26 @@ $("#sgCustom").onclick=()=>{
 };
 $("#fSearch").oninput=e=>{ fQ=e.target.value; renderCustom(); };
 
+/* satu baris gerakan, dipakai tab Latihan dan rincian di jadwal */
+function exRow(e,tandai){
+  const dd=day(ymd(cur)); if(!dd.ex) dd.ex={};
+  const on=tandai && !!dd.ex[e.n];
+  const row=document.createElement("div");
+  row.className="ex"+(on?" exon":"");
+  row.innerHTML=
+    (tandai?`<button class="exbox${on?" on":""}" aria-label="Tandai selesai"><svg viewBox="0 0 12 12" fill="none"><path d="M1 6l3.2 3.2L11 2.4" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:"")
+    +`<button class="enb"><span class="en">${e.n}</span><span class="how">Cara →</span></button>
+      <div class="er">${e.r}</div>
+      ${e.s?`<button class="tbtn">Timer</button>`:""}`;
+  if(tandai) row.querySelector(".exbox").onclick=()=>toggleEx(e.n);
+  row.querySelector(".enb").onclick=()=>openGuide(e.n);
+  if(e.s) row.querySelector(".tbtn").onclick=()=>openTimer(e.n,e.s);
+  return row;
+}
+
 function renderTrain(){
   const box=$("#weekplan"); box.innerHTML="";
-  const k=ymd(cur), dd=day(k); if(!dd.ex) dd.ex={};
+  const k=ymd(cur); if(!day(k).ex) day(k).ex={};
   const order=[cur.getDay()]; for(let i=1;i<=6;i++) order.push((cur.getDay()+i)%7);
 
   order.forEach((dw,pos)=>{
@@ -1244,20 +1501,7 @@ function renderTrain(){
     pr.blocks.forEach(bl=>{
       const c=document.createElement("div"); c.className="exlist"; c.style.marginBottom="8px";
       c.innerHTML=`<div class="exhead"><div class="n">${bl.n}</div><div class="r">${bl.r}</div></div>`;
-      bl.ex.forEach(e=>{
-        const on=isToday && !!dd.ex[e.n];
-        const row=document.createElement("div");
-        row.className="ex"+(on?" exon":"");
-        row.innerHTML=
-          (isToday?`<button class="exbox${on?" on":""}" aria-label="Tandai selesai"><svg viewBox="0 0 12 12" fill="none"><path d="M1 6l3.2 3.2L11 2.4" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:"")
-          +`<button class="enb"><span class="en">${e.n}</span><span class="how">Cara →</span></button>
-            <div class="er">${e.r}</div>
-            ${e.s?`<button class="tbtn">Timer</button>`:""}`;
-        if(isToday) row.querySelector(".exbox").onclick=()=>toggleEx(e.n);
-        row.querySelector(".enb").onclick=()=>openGuide(e.n);
-        if(e.s) row.querySelector(".tbtn").onclick=()=>openTimer(e.n,e.s);
-        c.appendChild(row);
-      });
+      bl.ex.forEach(e=>c.appendChild(exRow(e,isToday)));
       box.appendChild(c);
     });
   });
