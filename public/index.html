@@ -400,6 +400,19 @@
   .verd.ok{background:var(--jade-dim);color:#14544A}
   .verd.over{background:var(--chili-dim);color:#8E2A22}
   .verd.low{background:var(--turmeric-dim);color:#8A6316}
+  .tgkt{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-weight:600;font-size:13.5px;margin-bottom:6px}
+  .lvl{
+    display:inline-block;padding:2px 8px;border-radius:99px;flex-shrink:0;
+    font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  }
+  .lvl.wajib,.lvl.stop{background:var(--chili);color:#fff}
+  .lvl.disarankan,.lvl.batasi{background:var(--turmeric);color:#3B2A05}
+  .lvl.boleh{background:#DDE0D8;color:var(--ink-soft)}
+  .lvl.cukup{background:var(--jade);color:#fff}
+  .jika{
+    margin-top:8px;padding-top:8px;border-top:1px dashed rgba(16,22,20,.18);
+    font-size:12px;line-height:1.5;
+  }
   .eat{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
   .eat+.eat{margin-top:6px}
   .eat .nm3{flex:1;font-size:13.5px;line-height:1.3;min-width:0}
@@ -1456,59 +1469,86 @@ function exStat(){
 }
 
 /* Apa yang sebaiknya dilakukan dengan angka sekarang.
-   Jamnya ikut dihitung: 800 kkal jam 10 pagi lain artinya dengan
-   800 kkal jam 9 malam. Mengembalikan kelas .verd + kalimatnya. */
+   Jamnya ikut dihitung: 800 kkal jam 10 pagi lain artinya dengan 800 kkal
+   jam 9 malam. Mengembalikan tingkat rekomendasi (wajib / disarankan /
+   boleh / batasi / cukup / stop), alasannya, dan akibatnya kalau saran
+   itu tidak diikuti. */
 function saranGizi(){
   const g=totalGizi();
   const sisaK=Math.round(TARGET_K-g.k), sisaP=Math.round(TARGET_P-g.p);
-  /* Gap kecil enak disebut dalam telur; gap besar tidak \u2014 "9 telur rebus"
+  /* Gap kecil enak disebut dalam telur; gap besar tidak — "9 telur rebus"
      bukan saran, jadi di atas 24 g dinyatakan sebagai berat lauk. */
-  const telur=Math.max(1,Math.round(sisaP/6));                    // 1 telur \u2248 6 g protein
-  const gramLauk=Math.round(sisaP/31*100/10)*10;                  // dada ayam \u2248 31 g protein / 100 g
+  const telur=Math.max(1,Math.round(sisaP/6));                    // 1 telur ≈ 6 g protein
+  const gramLauk=Math.round(sisaP/31*100/10)*10;                  // dada ayam ≈ 31 g protein / 100 g
   const caraProtein = sisaP<=24
     ? `sekitar ${telur} telur rebus, atau tahu dan tempe kukus`
-    : `porsi lauk yang serius \u2014 sekitar ${gramLauk} g dada ayam atau ikan, boleh dibagi dengan telur`;
+    : `porsi lauk yang serius — sekitar ${gramLauk} g dada ayam atau ikan, boleh dibagi dengan telur`;
   const now=new Date(), jam=now.getHours()+now.getMinutes()/60;
 
   if(ymd(cur)!==ymd(now))
-    return {v:"", t:`Hari itu tercatat <b>${g.k} kkal</b> dan <b>${g.p} g protein</b>. Saran tindakan hanya muncul untuk hari yang sedang berjalan.`};
+    return {t:`Hari itu tercatat <b>${g.k} kkal</b> dan <b>${g.p} g protein</b>. Saran tindakan hanya muncul untuk hari yang sedang berjalan.`};
 
   if(g.k===0)
-    return {v:"", t:"Belum ada yang masuk hitungan. Centang baris makannya kalau kamu makan sesuai saran, atau catat sendiri lewat <b>Isi sendiri</b>."};
+    return {t:"Belum ada yang masuk hitungan. Centang baris makannya kalau kamu makan sesuai saran, atau catat sendiri lewat <b>Isi sendiri</b>."};
 
   // sudah kelewat target
   if(sisaK < -250)
-    return {v:"over", t:`Sudah lebih <b>${-sisaK} kkal</b> dari target. <b>Stop makan</b> hari ini, cukup air putih atau teh tawar. Besok jangan dibalas dengan puasa \u2014 cukup kembali ke porsi normal.`};
+    return {v:"over", lvl:"stop", aksi:"berhenti makan hari ini",
+      t:`Sudah lebih <b>${-sisaK} kkal</b> dari target. Cukup air putih atau teh tawar sampai besok.`,
+      jikaLab:"Kalau ditambah lagi",
+      jika:"defisit hari ini habis dan berbalik jadi surplus. Sehari begini tidak merusak program, tapi kalau berulang, timbangan berhenti turun. Besok cukup kembali ke porsi normal — jangan dibalas dengan puasa."};
 
   // jam makan sudah tutup
   if(jam>=21){
     if(sisaK>400)
-      return {v:"low", t:`Kurang <b>${sisaK} kkal</b> dan sudah lewat jam 21.00. Malam ini biarkan saja, tapi jangan jadi kebiasaan \u2014 makan terlalu sedikit bikin otot ikut hilang, bukan cuma lemak.`};
-    return {v:"ok", t:"Jam makan sudah tutup. Sisanya air putih atau teh tawar sampai besok pagi."};
+      return {v:"low", lvl:"cukup", aksi:"biarkan, jam makan sudah tutup",
+        t:`Kurang <b>${sisaK} kkal</b> tapi sudah lewat jam 21.00. Malam ini tidak usah dikejar.`,
+        jikaLab:"Kalau sering begini",
+        jika:"badan menyesuaikan diri dengan asupan rendah — metabolisme melambat, otot ikut susut, dan besoknya lapar berlebihan sampai jebol. Besok pastikan sarapan dan makan siangnya tidak dilewat."};
+    return {v:"ok", lvl:"cukup", aksi:"berhenti makan",
+      t:"Asupan hari ini sudah cukup dan jam makan sudah tutup.",
+      jikaLab:"Kalau tetap ngemil",
+      jika:"kalorinya masuk hitungan dan tidurnya jadi kurang nyenyak. Air putih atau teh tawar saja."};
   }
 
-  // jatah habis kecepatan
-  const jatah = jam<10?400 : jam<15?1100 : jam<17.5?1270 : TARGET_K;
-  const namaJam = jam<10?"pagi" : jam<15?"siang" : jam<17.5?"sore" : "malam";
+  // jatah habis kecepatan — ambangnya mengikuti jam makan di jadwal
+  // (sarapan 06.30, siang 12.00, snack 15.30, malam 18.30)
+  const jatah = jam<12?400 : jam<15.5?1100 : jam<18.5?1270 : TARGET_K;
+  const namaJam = jam<11?"pagi" : jam<15.5?"siang" : jam<18.5?"sore" : "malam";
   if(sisaK>0 && g.k>jatah+300)
-    return {v:"low", t:`Baru ${namaJam} tapi sudah <b>${g.k} kkal</b>. Sisa <b>${sisaK} kkal</b> harus cukup sampai makan malam \u2014 pakai untuk lauk, bukan camilan.`};
+    return {v:"low", lvl:"batasi", aksi:"sisakan jatah untuk makan malam",
+      t:`Baru ${namaJam} tapi sudah <b>${g.k} kkal</b>. Sisa <b>${sisaK} kkal</b> harus cukup sampai malam — pakai untuk lauk, bukan camilan.`,
+      jikaLab:"Kalau terus ngemil sekarang",
+      jika:"jatah makan malam habis. Makan malam yang dilewat bikin lapar tengah malam, dan itu yang biasanya berakhir di mi instan."};
 
   // pas di target
   if(sisaK<=150 && sisaP<=15)
-    return {v:"ok", t:"Sudah pas di target. <b>Tidak perlu makan lagi</b>, cukup air putih."};
+    return {v:"ok", lvl:"cukup", aksi:"tidak perlu makan lagi",
+      t:"Kalori dan protein hari ini sudah pas di target.",
+      jikaLab:"Kalau ditambah",
+      jika:"defisit hari ini tergerus. Cukup air putih saja."};
 
   // kalori cukup, protein kurang
   if(sisaK<=150 && sisaP>15)
-    return {v:"low", t:`Kalori sudah cukup tapi protein kurang <b>${sisaP} g</b>. Tambah protein <b>tanpa nasi</b>: ${caraProtein}.`};
+    return {v:"low", lvl: sisaP>35?"wajib":"disarankan", aksi:"tambah lauk tanpa nasi",
+      t:`Kalori sudah cukup tapi protein kurang <b>${sisaP} g</b>. Tambahannya: ${caraProtein}.`,
+      jika:"kalorinya tetap aman, tapi yang turun bisa ikut otot — bukan cuma lemak. Efeknya perut mengecil tapi badan jadi lembek, dan metabolisme ikut melambat."};
 
   // masih ada jatah
-  const berikut = jam<10?"makan siang" : jam<15?"snack sore" : jam<17.5?"makan malam" : "sisa malam ini";
+  const berikut = jam<12?"makan siang" : jam<15.5?"snack sore" : jam<18.5?"makan malam" : "sisa malam ini";
   /* Siang hari protein pasti belum terkumpul penuh, jadi yang dinilai
      bukan sisanya melainkan proporsinya terhadap kalori yang sudah masuk. */
   const rasio=g.p/g.k*100, rasioTarget=TARGET_P/TARGET_K*100;
-  if(rasio < rasioTarget-0.5)
-    return {v:"", t:`Masih ada <b>${sisaK} kkal</b> untuk ${berikut}. Proteinnya ketinggalan \u2014 baru ${g.p} g dari ${g.k} kkal yang masuk. <b>Dahulukan lauk</b>: ayam, ikan, telur, atau tempe, baru sisanya nasi.`};
-  return {v:"", t:`Masih ada <b>${sisaK} kkal</b> untuk ${berikut}. Proteinnya sudah sejalan dengan kalorinya \u2014 pertahankan pola porsi yang sama.`};
+  const lvl = (sisaK>500 && jam>=15) ? "wajib" : sisaK>=250 ? "disarankan" : "boleh";
+  const inti = rasio < rasioTarget-0.5
+    ? `Proteinnya ketinggalan — baru ${g.p} g dari ${g.k} kkal yang masuk. <b>Dahulukan lauk</b>: ayam, ikan, telur, atau tempe, baru sisanya nasi.`
+    : "Proteinnya sudah sejalan dengan kalorinya — pertahankan pola porsi yang sama.";
+  const jika = lvl==="wajib"
+    ? `hari ini berhenti di <b>${g.k} kkal</b>, ${sisaK} kkal di bawah target. Defisit sebesar itu bukan mempercepat hasil — badan malah hemat energi, otot ikut kepakai, dan besok lapar berlebihan.`
+    : lvl==="disarankan"
+    ? `hari ini berhenti di <b>${g.k} kkal</b>. Sesekali masih boleh, tapi jangan jadi pola tiap hari.`
+    : `tidak apa-apa. Kamu sudah dekat target, selisih ${sisaK} kkal tidak berarti banyak.`;
+  return {v:"", lvl, aksi:berikut, t:`Masih ada <b>${sisaK} kkal</b> untuk ${berikut}. ${inti}`, jika};
 }
 
 function renderSum(){
@@ -1518,7 +1558,11 @@ function renderSum(){
     <div class="bar" style="margin-top:11px"><div class="fillp" style="width:${Math.min(100,g.p/TARGET_P*100)}%"></div></div>
     <div class="brow"><span>Protein</span><b>${g.p} / ${TARGET_P} g</b></div>
     <div class="orow"><span>Olahraga</span><b>${x.done}/${x.total} gerakan${x.menit?` · ${x.menit} menit`:""}</b></div>
-    <div class="verd${s.v?" "+s.v:""}">${s.t}</div>
+    <div class="verd${s.v?" "+s.v:""}">
+      ${s.lvl?`<div class="tgkt"><span class="lvl ${s.lvl}">${s.lvl}</span> ${s.aksi}</div>`:""}
+      <div>${s.t}</div>
+      ${s.jika?`<div class="jika"><b>${s.jikaLab||"Kalau tidak ditambah"}:</b> ${s.jika}</div>`:""}
+    </div>
     <div class="dnote">Menu saran ikut dihitung setelah baris makannya dicentang. Makanan yang kamu catat sendiri selalu dihitung.</div>`;
 }
 
