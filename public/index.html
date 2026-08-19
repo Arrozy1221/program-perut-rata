@@ -414,6 +414,17 @@
     background:var(--jade-dim);color:#14544A;font-size:12.5px;font-weight:600;
   }
   .fnote[hidden]{display:none}
+  .fnote.awasnote{background:var(--turmeric-dim);color:#8A6316}
+  .fnote .alasan{display:block;font-weight:500;margin-top:3px}
+  .awas{
+    display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
+    background:var(--turmeric);color:#3B2A05;font-size:10px;font-weight:700;
+    vertical-align:1px;flex-shrink:0;
+  }
+  .dawas{
+    margin-top:9px;padding:8px 10px;border-radius:9px;
+    background:var(--turmeric-dim);color:#8A6316;font-size:11.5px;line-height:1.45;
+  }
   .slotsel{border:1px solid var(--line);border-radius:7px;padding:4px 6px;font-family:var(--body);font-size:11.5px;background:#fff;color:var(--ink-soft)}
 
   /* modal */
@@ -881,7 +892,7 @@ const FOOD=[
  ["Nasi putih ½ porsi (±5 sdm)",130,2.7,"Karbo"],["Nasi putih 1 porsi warung",260,5.4,"Karbo"],
  ["Nasi merah ½ porsi",110,2.6,"Karbo"],["Nasi uduk ½ porsi",180,3,"Karbo"],
  ["Lontong 1 potong",80,1.5,"Karbo"],["Bihun goreng 1 porsi",300,6,"Karbo"],
- ["Mie goreng 1 porsi",380,8,"Karbo"],["Mie instan rebus 1 bungkus",350,8,"Karbo","indomie mi"],
+ ["Mie goreng 1 porsi",380,8,"Karbo","mi goreng jawa tektek"],["Mie instan rebus 1 bungkus",350,8,"Karbo","indomie mi"],
  ["Kentang rebus 100 g",87,2,"Karbo"],["Roti tawar 1 lembar",70,2.4,"Karbo"],
  ["Roti gandum 1 lembar",75,3.5,"Karbo"],["Ubi rebus 100 g",100,1.6,"Karbo","boled"],
  ["Jagung rebus 1 buah",130,4,"Karbo"],["Singkong rebus 100 g",150,1.4,"Karbo","sampeu"],
@@ -975,7 +986,7 @@ const FOOD=[
  ["Soda 1 kaleng",140,0,"Minuman"],["Air kelapa 1 gelas",45,0.5,"Minuman"],
  ["Susu kental manis 2 sdm",130,1.5,"Minuman"],
  // tambahan karbo
- ["Nasi goreng 1 porsi",600,14,"Karbo"],["Kwetiau goreng 1 porsi",400,10,"Karbo"],
+ ["Nasi goreng 1 porsi",600,14,"Karbo","nasgor"],["Kwetiau goreng 1 porsi",400,10,"Karbo"],
  ["Makaroni goreng 1 porsi",320,8,"Karbo","macaroni"],
  ["Makaroni schotel 1 potong",250,10,"Karbo","macaroni skotel"],
  ["Nasi kuning 1 porsi",300,6,"Karbo"],["Ketupat 1 buah",90,1.7,"Karbo","kupat"],
@@ -1014,9 +1025,118 @@ const FOOD=[
  ["Es doger 1 gelas",250,2,"Minuman"],["Bandrek 1 gelas",150,0.5,"Minuman"],
  ["Bajigur 1 gelas",200,1.5,"Minuman"],["Es jeruk manis 1 gelas",110,1,"Minuman"],
  ["Susu kedelai 250 ml",110,7,"Minuman"],["Yoghurt botol 1 botol",130,5,"Minuman"],
- ["Kopi susu gula aren 1 cup",250,4,"Minuman"]
+ ["Kopi susu gula aren 1 cup",250,4,"Minuman"],
+ // mie instan & nasi goreng
+ ["Mie goreng instan 1 bungkus",400,8,"Karbo","indomie mi instan"],
+ ["Mie instan + telur 1 porsi",470,14,"Karbo","indomie telur"],
+ ["Mie instan + nasi ½ porsi",480,10,"Karbo","indomie nasi"],
+ ["Nasi goreng + telur 1 porsi",700,20,"Karbo","nasgor"],
+ ["Nasi goreng seafood 1 porsi",620,22,"Karbo","nasgor"],
+ ["Kwetiau siram 1 porsi",420,14,"Karbo"],
+ // dimsum
+ ["Siomay ayam dimsum 3 buah",150,9,"Dimsum"],
+ ["Hakau udang 3 buah",130,7,"Dimsum","dimsum"],
+ ["Ceker dimsum 5 buah",180,12,"Dimsum"],
+ ["Pangsit rebus 5 buah",150,7,"Dimsum","dimsum"],
+ ["Xiao long bao 4 buah",230,10,"Dimsum","dimsum"],
+ ["Ekado 3 buah",200,9,"Dimsum","dimsum"],
+ ["Lumpia kulit tahu 3 buah",210,8,"Dimsum","dimsum kekian"],
+ ["Bakpao ayam 1 buah",220,8,"Dimsum","dimsum"],
+ ["Bakpao cokelat 1 buah",240,5,"Dimsum","dimsum"],
+ ["Lumpia udang goreng 3 buah",220,8,"Dimsum","dimsum"],
+ ["Pangsit goreng 5 buah",250,6,"Dimsum","dimsum"],
+ ["Kwotie 5 buah",260,10,"Dimsum","dimsum gyoza"],
+ ["Mantau goreng 2 buah",260,5,"Dimsum","dimsum"],
+ // jajanan & kue kotak
+ ["Snack box kantor (kue + gorengan)",450,7,"Jajanan & Kue","kue kotak snackbox"],
+ ["Lemper 1 buah",180,4,"Jajanan & Kue","jajan pasar"],
+ ["Arem-arem 1 buah",170,4,"Jajanan & Kue","jajan pasar"],
+ ["Pastel 1 buah",180,3,"Jajanan & Kue","jajan pasar"],
+ ["Risoles mayo 1 buah",200,5,"Jajanan & Kue"],
+ ["Lumpia goreng 1 buah",150,3,"Jajanan & Kue"],
+ ["Kue lapis 1 potong",160,1.5,"Jajanan & Kue","jajan pasar"],
+ ["Bolu kukus 1 buah",130,2,"Jajanan & Kue","jajan pasar"],
+ ["Bolu gulung 1 potong",180,3,"Jajanan & Kue"],
+ ["Brownies panggang 1 potong",200,3,"Jajanan & Kue"],
+ ["Onde-onde 1 buah",180,3,"Jajanan & Kue","jajan pasar"],
+ ["Klepon 3 buah",150,1.5,"Jajanan & Kue","jajan pasar"],
+ ["Dadar gulung 1 buah",140,2,"Jajanan & Kue","jajan pasar"],
+ ["Nagasari 1 buah",130,1.5,"Jajanan & Kue","jajan pasar"],
+ ["Putu ayu 1 buah",130,2,"Jajanan & Kue","jajan pasar"],
+ ["Kue sus 1 buah",180,3,"Jajanan & Kue","soes"],
+ ["Kue cucur 1 buah",150,1.5,"Jajanan & Kue","jajan pasar"],
+ ["Wajik 1 potong",170,1.5,"Jajanan & Kue","jajan pasar"],
+ ["Getuk 1 potong",140,1.2,"Jajanan & Kue","jajan pasar"],
+ ["Kue talam 1 potong",140,1.5,"Jajanan & Kue","jajan pasar"],
+ ["Bika ambon 1 potong",180,2,"Jajanan & Kue"],
+ ["Pie susu 1 buah",130,2,"Jajanan & Kue"],
+ ["Kue kering 3 keping",150,2,"Jajanan & Kue","nastar putri salju"],
+ ["Agar-agar 1 potong",90,1.5,"Jajanan & Kue"]
 ].map(x=>({n:x[0],k:x[1],p:x[2],c:x[3],a:(x[4]||"").toLowerCase()}));   // a = nama lain untuk pencarian
 const KATEGORI=[...new Set(FOOD.map(f=>f.c))];
+
+/* ===== PERINGATAN MAKANAN =====
+   Kode singkat -> alasannya. Satu makanan boleh punya lebih dari satu kode. */
+const AWAS={
+  g:"Digoreng \u2014 minyaknya bikin kalori melonjak.",
+  m:"Gulanya tinggi. Ini yang paling gampang menjebol defisit.",
+  i:"Instan: natriumnya tinggi, proteinnya sedikit.",
+  s:"Santan kental \u2014 lemak jenuhnya banyak.",
+  k:"Kalori padat tapi protein rendah, cepat lapar lagi."
+};
+const TANDA={};
+const tandai=(kode,...nama)=>nama.forEach(n=>TANDA[n]=kode);
+
+tandai("g",
+  "Mie goreng 1 porsi","Bihun goreng 1 porsi","Ayam goreng tepung 1 potong",
+  "Kulit ayam goreng 1 potong","Bakwan 1 buah","Tahu isi 1 buah","Pisang goreng 1 buah",
+  "Risoles 1 buah","Kerupuk 5 buah","Emping 1 genggam","Perkedel 1 buah","Cireng 3 buah",
+  "Keripik kentang 1 bungkus kecil","Cakwe 1 buah","Molen 1 buah","Cimol 10 buah",
+  "Basreng 1 bungkus kecil","Combro 1 buah","Misro 1 buah","Odading 1 buah",
+  "Usus goreng 1 porsi","Cumi goreng tepung 100 g","Makaroni pedas kering 1 bungkus",
+  "Seblak kering 1 bungkus","Lumpia udang goreng 3 buah","Pangsit goreng 5 buah",
+  "Kwotie 5 buah","Mantau goreng 2 buah","Pastel 1 buah","Risoles mayo 1 buah",
+  "Lumpia goreng 1 buah");
+
+tandai("m",
+  "Teh manis 1 gelas","Es kopi susu 1 cup","Soda 1 kaleng","Jus buah kemasan 1 botol",
+  "Susu kental manis 2 sdm","Martabak manis 1 potong","Donat 1 buah","Biskuit 3 keping",
+  "Es cendol 1 gelas","Es goyobod 1 gelas","Es doger 1 gelas","Bajigur 1 gelas",
+  "Bandrek 1 gelas","Kopi susu gula aren 1 cup","Es jeruk manis 1 gelas",
+  "Surabi kinca 1 buah","Colenak 1 porsi","Kue balok 1 buah","Bandros 2 buah",
+  "Awug 1 potong","Pisang bolen 1 buah","Brownies kukus 1 potong","Bakpao cokelat 1 buah",
+  "Kue lapis 1 potong","Bolu kukus 1 buah","Bolu gulung 1 potong","Brownies panggang 1 potong",
+  "Klepon 3 buah","Dadar gulung 1 buah","Nagasari 1 buah","Putu ayu 1 buah","Kue sus 1 buah",
+  "Wajik 1 potong","Getuk 1 potong","Kue talam 1 potong","Bika ambon 1 potong",
+  "Pie susu 1 buah","Kue kering 3 keping");
+
+tandai("i",
+  "Mie instan rebus 1 bungkus","Mie goreng instan 1 bungkus","Mie instan + telur 1 porsi",
+  "Sosis 1 buah");
+
+tandai("s",
+  "Rendang 1 potong","Sayur lodeh 1 mangkuk","Kuah santan 1 sendok sayur",
+  "Gulai kambing 1 mangkuk");
+
+tandai("k",
+  "Bumbu kacang 2 sdm","Seblak basah 1 porsi","Nasi timbel komplit","Nasi putih 1 porsi warung");
+
+tandai("ik","Mie instan + nasi \u00bd porsi");
+tandai("gm","Onde-onde 1 buah","Kue cucur 1 buah","Snack box kantor (kue + gorengan)");
+
+/* alasan lengkap sebuah makanan, kosong kalau aman */
+function peringatan(f){
+  const k=f&&TANDA[f.n]; if(!k) return "";
+  return k.split("").map(c=>AWAS[c]).filter(Boolean).join(" ");
+}
+const lencanaAwas=f=>peringatan(f)?' <span class="awas" title="Perlu diwaspadai">!</span>':"";
+/* alasan gabungan beberapa makanan — kodenya yang disatukan, supaya
+   alasan yang sama tidak muncul dua kali. */
+function alasanGabungan(daftarNama){
+  const kode=new Set();
+  daftarNama.forEach(n=>(TANDA[n]||"").split("").forEach(c=>{ if(AWAS[c]) kode.add(c); }));
+  return [...kode].map(c=>AWAS[c]).join(" ");
+}
 const TARGET_K=1700, TARGET_P=125;
 const TARGET_PCT=70;               // ambang sebuah hari dihitung konsisten
 const SUSUL_HARI=5, SUSUL_MAX=2;   // batas kartu "latihan yang kelewat"
@@ -1276,11 +1396,13 @@ function mealDetail(m){
     own.forEach(o=>{ const f=foodBy(o.x.n); if(f){ k+=f.k*o.x.q; p+=f.p*o.x.q; } });
     el.innerHTML=`<div class="dlab">Dicatat sendiri</div>`
       +own.map(o=>{ const f=foodBy(o.x.n);
-        return `<div class="dit"><span class="dn">${o.x.n}${o.x.q!==1?` <small>×${o.x.q}</small>`:""}</span>
+        return `<div class="dit"><span class="dn">${o.x.n}${o.x.q!==1?` <small>×${o.x.q}</small>`:""}${lencanaAwas(f)}</span>
           <span class="dk">${f?Math.round(f.k*o.x.q):0} kkal</span>
           <button class="dx" type="button" aria-label="Hapus ${o.x.n}">✕</button></div>`; }).join("")
-      +`<div class="macros"><span class="chip">${Math.round(k)} kkal</span><span class="chip p">${Math.round(p)} g protein</span></div>
-        <div class="dact"><button class="dbtn go" type="button">+ Tambah</button><button class="dbtn" type="button">Pakai saran</button></div>`;
+      +`<div class="macros"><span class="chip">${Math.round(k)} kkal</span><span class="chip p">${Math.round(p)} g protein</span></div>`
+      +(()=>{ const a=alasanGabungan(own.map(o=>o.x.n));
+              return a?`<div class="dawas">⚠ ${a}</div>`:""; })()
+      +`<div class="dact"><button class="dbtn go" type="button">+ Tambah</button><button class="dbtn" type="button">Pakai saran</button></div>`;
     el.querySelectorAll(".dx").forEach((b,i)=>b.onclick=()=>{
       eatenList().splice(own[i].i,1); save(); renderCustom(); renderToday();
     });
@@ -1376,12 +1498,14 @@ function renderFm(){
   const list=FOOD.filter(f=>(fmCat==="Semua"||f.c===fmCat)&&cocokFood(f,q));
   const fl=$("#fmList"); fl.innerHTML="";
   if(!list.length){ fl.innerHTML='<div class="empty">Tidak ketemu. Coba kata lain, atau pilih yang paling mirip.</div>'; return; }
-  list.slice(0,200).forEach(f=>{
+  list.slice(0,300).forEach(f=>{
     const el=document.createElement("div"); el.className="fi";
-    el.innerHTML=`<div class="fn">${f.n}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
+    el.innerHTML=`<div class="fn">${f.n}${lencanaAwas(f)}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
     el.onclick=()=>{
-      const s=addFood(f.n,fmSlot);
-      const nt=$("#fmNote"); nt.textContent="✓ "+f.n+" masuk ke "+s; nt.hidden=false;
+      const s=addFood(f.n,fmSlot), w=peringatan(f), nt=$("#fmNote");
+      nt.className="fnote"+(w?" awasnote":"");
+      nt.innerHTML=(w?"⚠ ":"✓ ")+f.n+" masuk ke "+s+(w?`<span class="alasan">${w}</span>`:"");
+      nt.hidden=false;
     };
     fl.appendChild(el);
   });
@@ -1523,7 +1647,13 @@ function chgQty(i,d){
 }
 function foodBy(n){ return FOOD.find(f=>f.n===n); }
 /* cocok kalau kata kunci ada di nama atau di nama lainnya (bala-bala, gehu, baso…) */
-function cocokFood(f,q){ return !q || f.n.toLowerCase().includes(q) || f.a.includes(q); }
+/* cocok kalau SEMUA kata yang diketik ada di nama atau nama lainnya,
+   jadi "mie goreng indomie" tetap ketemu walau urutannya beda. */
+function cocokFood(f,q){
+  if(!q) return true;
+  const teks=f.n.toLowerCase()+" "+f.a;
+  return q.split(/\s+/).every(w=>!w||teks.includes(w));
+}
 
 function renderCustom(){
   const e=eatenList();
@@ -1579,9 +1709,9 @@ function renderCustom(){
   const list=FOOD.filter(f=>(fCat==="Semua"||f.c===fCat)&&cocokFood(f,q));
   const fl=$("#flist"); fl.innerHTML="";
   if(!list.length){ fl.innerHTML='<div class="empty">Tidak ketemu. Coba kata lain, atau pilih yang paling mirip.</div>'; }
-  list.slice(0,200).forEach(f=>{
+  list.slice(0,300).forEach(f=>{
     const el=document.createElement("div"); el.className="fi";
-    el.innerHTML=`<div class="fn">${f.n}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
+    el.innerHTML=`<div class="fn">${f.n}${lencanaAwas(f)}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
     el.onclick=()=>addFood(f.n);
     fl.appendChild(el);
   });
