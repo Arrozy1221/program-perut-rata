@@ -786,29 +786,65 @@ const S = [
 
 const CORE = {n:"Core", r:"3 putaran", ex:[
   {n:"Plank",r:"45 detik",s:45},{n:"Side plank kiri",r:"30 detik",s:30},{n:"Side plank kanan",r:"30 detik",s:30},
-  {n:"Dead bug",r:"12× / sisi"},{n:"Bicycle crunch",r:"20×"},{n:"Leg raise",r:"15×"}
+  {n:"Dead bug",r:"12\u00d7 / sisi"},{n:"Bicycle crunch",r:"20\u00d7"},{n:"Leg raise",r:"15\u00d7"}
 ]};
 
+/* ===== RUTINITAS YANG BENAR-BENAR DIJALANI =====
+   Plank 40 detik tiap habis sholat, treadmill (rata, tanpa tanjakan)
+   Sabtu & Minggu pagi, badminton Minggu siang. Blok bertanda opsional
+   adalah program lama \u2014 tetap bisa dilihat, tapi tidak ikut dihitung
+   supaya persentase harian mencerminkan yang memang dikerjakan. */
+const opsional = b => ({...b, opsional:true, r:b.r+" \u00b7 opsional"});
+
+const PLANK = {n:"Plank setelah sholat", r:"40 detik \u00d7 5 waktu", ex:[
+  {n:"Plank setelah Subuh",   r:"40 detik", s:40},
+  {n:"Plank setelah Dzuhur",  r:"40 detik", s:40},
+  {n:"Plank setelah Ashar",   r:"40 detik", s:40},
+  {n:"Plank setelah Maghrib", r:"40 detik", s:40},
+  {n:"Plank setelah Isya",    r:"40 detik", s:40}
+]};
+
+const TM_JALAN = {n:"Treadmill \u2014 jalan cepat", r:"45 menit \u00b7 treadmill rata", ex:[
+  {n:"Treadmill pemanasan",     r:"5 menit \u00b7 4,0 km/jam",      s:300},
+  {n:"Treadmill jalan cepat",   r:"35 menit \u00b7 5,5\u20136,5 km/jam", s:2100},
+  {n:"Treadmill pendinginan",   r:"5 menit \u00b7 3,5 km/jam",      s:300}
+]};
+
+const TM_INTERVAL = {n:"Treadmill \u2014 interval", r:"30 menit \u00b7 treadmill rata", ex:[
+  {n:"Treadmill pemanasan",      r:"5 menit \u00b7 4,0 km/jam",           s:300},
+  {n:"Treadmill interval cepat", r:"10\u00d7 1 menit \u00b7 7,0\u20138,5 km/jam", s:60, m:10},
+  {n:"Treadmill jalan pemulih",  r:"10\u00d7 1 menit \u00b7 4,5 km/jam",      s:60, m:10},
+  {n:"Treadmill pendinginan",    r:"5 menit \u00b7 3,5 km/jam",           s:300}
+]};
+
+const BADMINTON = {n:"Badminton", r:"siang \u00b7 sekitar jam 14.00", ex:[
+  {n:"Pemanasan",r:"8 menit",s:480},
+  {n:"Main badminton",r:"60\u201390 menit",m:75},
+  {n:"Pendinginan + peregangan",r:"6 menit",s:360}
+]};
+
+const LOWER = {n:"Lower Body",r:"3 putaran",ex:[{n:"Squat",r:"20\u00d7"},{n:"Lunges",r:"12\u00d7 / kaki"},{n:"Glute bridge",r:"20\u00d7"},{n:"Wall sit",r:"45 detik",s:45},{n:"Calf raise",r:"25\u00d7"}]};
+const UPPER = {n:"Upper Body",r:"3 putaran",ex:[{n:"Push-up (boleh lutut)",r:"10\u201315\u00d7"},{n:"Pike push-up",r:"10\u00d7"},{n:"Inverted row (bawah meja)",r:"10\u00d7"},{n:"Tricep dips (kursi)",r:"12\u00d7"},{n:"Superman",r:"15\u00d7"}]};
+const HIIT  = {n:"HIIT",r:"4 putaran \u00b7 kerja 40 dtk / jeda 20 dtk",ex:[{n:"Jumping jack",r:"40 detik",s:40},{n:"Squat jump",r:"40 detik",s:40},{n:"Mountain climber",r:"40 detik",s:40},{n:"Push-up",r:"40 detik",s:40},{n:"High knees",r:"40 detik",s:40},{n:"Burpee",r:"40 detik",s:40}]};
+
 const PROGRAM = {
- 1:{type:"Lower Body + Core",sub:"Kaki & bokong · 30 menit",blocks:[
-    {n:"Lower Body",r:"3 putaran · jeda 60 dtk",ex:[{n:"Squat",r:"20×"},{n:"Lunges",r:"12× / kaki"},{n:"Glute bridge",r:"20×"},{n:"Wall sit",r:"45 detik",s:45},{n:"Calf raise",r:"25×"}]},CORE]},
- 2:{type:"Kardio + Core",sub:"Jalan cepat 35 menit · 30 menit total",blocks:[
-    {n:"Kardio",r:"tanpa jeda",ex:[{n:"Jalan cepat",r:"35 menit",s:2100},{n:"Peregangan hip flexor",r:"60 dtk / sisi",s:60}]},CORE]},
- 3:{type:"Upper Body + Core",sub:"Dada, punggung, bahu · 30 menit",blocks:[
-    {n:"Upper Body",r:"3 putaran · jeda 60 dtk",ex:[{n:"Push-up (boleh lutut)",r:"10–15×"},{n:"Pike push-up",r:"10×"},{n:"Inverted row (bawah meja)",r:"10×"},{n:"Tricep dips (kursi)",r:"12×"},{n:"Superman",r:"15×"}]},CORE]},
- 4:{type:"Kardio",sub:"Jalan cepat 35–40 menit",blocks:[
-    {n:"Kardio",r:"tanpa jeda",ex:[{n:"Jalan cepat",r:"40 menit",s:2400},{n:"Peregangan penuh",r:"5 menit",s:300}]}]},
- 5:{type:"HIIT Full Body",sub:"Pembakaran tertinggi · 25 menit",blocks:[
-    {n:"HIIT",r:"4 putaran · kerja 40 dtk / jeda 20 dtk",ex:[{n:"Jumping jack",r:"40 detik",s:40},{n:"Squat jump",r:"40 detik",s:40},{n:"Mountain climber",r:"40 detik",s:40},{n:"Push-up",r:"40 detik",s:40},{n:"High knees",r:"40 detik",s:40},{n:"Burpee",r:"40 detik",s:40}]}]},
- 6:{type:"Istirahat Aktif",sub:"Jalan santai 30 menit",blocks:[
-    {n:"Pemulihan",r:"santai",ex:[{n:"Jalan santai",r:"30 menit",s:1800},{n:"Peregangan menyeluruh",r:"8 menit",s:480}]}]},
- 0:{type:"Badminton",sub:"Main pagi 07.00–09.00",blocks:[
-    {n:"Badminton",r:"main seperti biasa",ex:[{n:"Pemanasan",r:"8 menit",s:480},{n:"Main badminton",r:"60–90 menit"},{n:"Pendinginan + peregangan",r:"6 menit",s:360}]}]}
+ 1:{type:"Plank Harian",sub:"40 detik \u00d7 5 waktu sholat",blocks:[PLANK, opsional(LOWER)]},
+ 2:{type:"Plank Harian",sub:"40 detik \u00d7 5 waktu sholat",blocks:[PLANK, opsional(CORE)]},
+ 3:{type:"Plank Harian",sub:"40 detik \u00d7 5 waktu sholat",blocks:[PLANK, opsional(UPPER)]},
+ 4:{type:"Plank Harian",sub:"40 detik \u00d7 5 waktu sholat",blocks:[PLANK]},
+ 5:{type:"Plank Harian",sub:"40 detik \u00d7 5 waktu sholat",blocks:[PLANK, opsional(HIIT)]},
+ 6:{type:"Treadmill + Plank",sub:"Jalan cepat 45 menit \u00b7 pagi",blocks:[TM_JALAN, PLANK]},
+ 0:{type:"Treadmill + Badminton",sub:"Treadmill pagi \u00b7 badminton 14.00",blocks:[TM_INTERVAL, BADMINTON, PLANK]}
 };
 
 /* ===== PANDUAN GERAKAN ===== */
 const G=(s)=>`<svg class="fig" viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg"><line class="gnd" x1="8" y1="94" x2="132" y2="94"/>${s}</svg>`;
 const GUIDE={
+"Treadmill":{m:"Jantung, paru, kaki \u2014 pembakar lemak utama",
+ s:G('<circle class="hd" cx="52" cy="20" r="8"/><path d="M52 28 L54 54"/><path class="hl" d="M54 54 L40 78"/><path class="hl" d="M54 54 L70 76"/><path d="M40 78 L32 88"/><path d="M70 76 L78 88"/><path d="M52 34 L36 44"/><path d="M52 36 L68 30"/><path class="gnd" d="M18 90 L118 90"/><path class="gnd" d="M112 90 L118 66"/>'),
+ h:["Treadmill rata tanpa tanjakan: kecepatan dan durasi yang jadi andalan.","Pemanasan 5 menit di 4,0 km/jam sampai napas mulai naik.","Inti latihan: jalan cepat 5,5\u20136,5 km/jam selama 35 menit, atau interval 10\u00d7 (1 menit 7,0\u20138,5 km/jam lalu 1 menit 4,5 km/jam).","Pendinginan 5 menit di 3,5 km/jam, jangan berhenti mendadak.","Patokan intensitas: napas terengah tapi masih sanggup bicara kalimat pendek."],
+ e:["Berpegangan pada setang \u2014 pembakaran kalorinya turun 20\u201330%. Biarkan tangan mengayun.","Tanpa sepatu lari, sendi lutut dan tumit yang menanggung.","Langkah pendek terburu-buru; lebih baik langkah lebar dengan tempo stabil.","Langsung berhenti setelah lari, bikin kepala berkunang."]},
+
 "Squat":{m:"Paha depan, bokong, core",
  s:G('<circle class="hd" cx="60" cy="20" r="8"/><path d="M60 28 L50 52"/><path d="M57 36 L78 40"/><path class="hl" d="M50 52 L74 56"/><path class="hl" d="M74 56 L72 92"/><path d="M72 92 L84 92"/>'),
  h:["Berdiri, kaki selebar bahu, ujung kaki sedikit membuka keluar.","Dorong pinggul ke belakang dulu (seperti mau duduk di kursi), baru tekuk lutut.","Turun sampai paha sejajar lantai atau semampunya, dada tetap tegak.","Dorong lantai dengan tumit untuk naik. Remas bokong di atas."],
@@ -1189,7 +1225,7 @@ function schedule(dow){
   const kerja = dow>=1 && dow<=5;
   if(kerja) return [
     {id:"bangun",tm:"05.15",t:"Bangun + 2 gelas air putih",d:"Air dulu sebelum kopi. Bantu bangunin metabolisme."},
-    {id:"latihan",tm:"05.30",t:"Latihan pagi",d:"Sesuai program hari ini — 30–35 menit."},
+    {id:"latihan",tm:"05.00",t:"Plank 40 detik \u00d7 5",d:"Satu set tiap habis sholat: Subuh, Dzuhur, Ashar, Maghrib, Isya."},
     {id:"sarapan",tm:"06.30",t:"Sarapan",d:"Lihat tab Menu untuk pilihan hari ini."},
     {id:"berangkat",tm:"07.00",t:"Berangkat kerja",d:"Kalau bisa, parkir agak jauh biar nambah langkah."},
     {id:"siang",tm:"12.00",t:"Makan siang",d:"Nasi setengah porsi. Air putih, bukan es teh manis."},
@@ -1202,8 +1238,9 @@ function schedule(dow){
   if(dow===0) return [
     {id:"bangun",tm:"06.00",t:"Bangun + air putih",d:""},
     {id:"sarapan",tm:"06.15",t:"Sarapan ringan",d:"Pisang + telur. Jangan main dengan perut kosong."},
-    {id:"latihan",tm:"07.00",t:"Badminton",d:"Pagi paling enak, udara masih segar."},
+    {id:"latihan",tm:"07.00",t:"Treadmill interval 30 menit",d:"Treadmill rata. Plank tetap jalan tiap habis sholat."},
     {id:"siang",tm:"12.00",t:"Makan siang",d:"Boleh porsi normal, tetap nasi setengah."},
+    {id:"badminton",tm:"14.00",t:"Badminton",d:"Main seperti biasa, 60\u201390 menit."},
     {id:"snack",tm:"15.30",t:"Snack",d:""},
     {id:"malam",tm:"18.30",t:"Makan malam",d:"Lauk + sayur."},
     {id:"timbang",tm:"20.00",t:"Rekap mingguan",d:"Catat berat & lingkar perut di tab Progres."},
@@ -1211,7 +1248,7 @@ function schedule(dow){
   ];
   return [
     {id:"bangun",tm:"06.30",t:"Bangun + air putih",d:""},
-    {id:"latihan",tm:"07.00",t:"Jalan santai 30 menit",d:"Bebas jamnya, tapi pagi lebih enak."},
+    {id:"latihan",tm:"07.00",t:"Treadmill 45 menit",d:"Jalan cepat konstan di treadmill rata. Plank tetap tiap habis sholat."},
     {id:"sarapan",tm:"08.00",t:"Sarapan",d:"Weekend bukan alasan skip sarapan."},
     {id:"siang",tm:"12.30",t:"Makan siang",d:"Nasi setengah porsi tetap berlaku."},
     {id:"snack",tm:"16.00",t:"Snack",d:""},
@@ -1457,10 +1494,14 @@ function totalGizi(){
 function exStat(){
   const dd=day(ymd(cur)); if(!dd.ex) dd.ex={};
   let done=0, total=0, menit=0;
-  PROGRAM[cur.getDay()].blocks.forEach(b=>b.ex.forEach(e=>{
-    total++;
-    if(dd.ex[e.n]){ done++; if(e.s) menit+=e.s/60; }
-  }));
+  PROGRAM[cur.getDay()].blocks.forEach(b=>{
+    if(b.opsional) return;
+    b.ex.forEach(e=>{
+      total++;
+      // e.m = menit sebenarnya kalau timernya cuma satu putaran (interval)
+      if(dd.ex[e.n]){ done++; menit += e.m || (e.s?e.s/60:0); }
+    });
+  });
   (dd.xe||[]).forEach(x=>{ total++; if(x.on){ done++; menit+=(+x.m||0); } });
   menit=Math.round(menit);
   // sebagian besar gerakan dihitung repetisi, bukan waktu — angka menit
@@ -1626,7 +1667,7 @@ function exDetail(){
   pr.blocks.forEach(bl=>{
     const c=document.createElement("div"); c.className="exlist"; c.style.margin="9px 0 0";
     c.innerHTML=`<div class="exhead"><div class="n">${bl.n}</div><div class="r">${bl.r}</div></div>`;
-    bl.ex.forEach(e=>c.appendChild(exRow(e,true)));
+    bl.ex.forEach(e=>c.appendChild(exRow(e,!bl.opsional)));
     el.appendChild(c);
   });
 
@@ -1780,7 +1821,10 @@ function renderMenu(){
 
 function todayEx(){
   const out=[];
-  PROGRAM[cur.getDay()].blocks.forEach(b=>b.ex.forEach(e=>out.push(e.n)));
+  PROGRAM[cur.getDay()].blocks.forEach(b=>{
+    if(b.opsional) return;                 // program tambahan tidak ikut dihitung
+    b.ex.forEach(e=>out.push(e.n));
+  });
   return out;
 }
 function exDone(k){
@@ -1942,15 +1986,22 @@ function renderTrain(){
     pr.blocks.forEach(bl=>{
       const c=document.createElement("div"); c.className="exlist"; c.style.marginBottom="8px";
       c.innerHTML=`<div class="exhead"><div class="n">${bl.n}</div><div class="r">${bl.r}</div></div>`;
-      bl.ex.forEach(e=>c.appendChild(exRow(e,isToday)));
+      bl.ex.forEach(e=>c.appendChild(exRow(e,isToday && !bl.opsional)));
       box.appendChild(c);
     });
   });
 }
 
 /* modal panduan gerakan */
+/* nama seperti "Plank setelah Subuh" atau "Treadmill pemanasan" ikut
+   memakai panduan "Plank" dan "Treadmill" lewat pencocokan awalan */
+function guideFor(name){
+  if(GUIDE[name]) return GUIDE[name];
+  const k=Object.keys(GUIDE).find(k=>name.startsWith(k));
+  return k?GUIDE[k]:null;
+}
 function openGuide(name){
-  const g=GUIDE[name];
+  const g=guideFor(name);
   const b=$("#gBody");
   if(!g){ b.innerHTML=`<div class="empty">Panduan untuk gerakan ini belum tersedia.</div>`; }
   else{
