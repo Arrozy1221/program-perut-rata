@@ -278,6 +278,26 @@
   .tbtn:hover{background:#DB9A2C}
 
   /* water */
+  /* air minum dalam ml */
+  .airtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .airnum{font-family:var(--display);font-size:32px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .airnum small{font-family:var(--body);font-size:13px;font-weight:500;color:var(--stone)}
+  .airsub{font-size:11.5px;color:var(--stone);margin-top:4px}
+  .airpct{font-family:var(--display);font-size:28px;font-weight:700;color:#3E8FB0;line-height:1;flex-shrink:0}
+  .filla{background:#3E8FB0;width:0}
+  .botolrow{display:flex;gap:9px;margin-top:12px}
+  .btl{
+    width:46px;height:66px;border:2px solid #C3C7BE;border-radius:6px 6px 11px 11px;
+    background:#fff;cursor:pointer;position:relative;overflow:hidden;padding:0;flex-shrink:0;
+  }
+  .btl .isi{position:absolute;inset:auto 0 0 0;background:#8FC9DE;transition:height .2s}
+  .btl .cap{
+    position:absolute;inset:auto 0 4px 0;text-align:center;font-family:var(--body);
+    font-size:9.5px;font-weight:700;color:#245A70;
+  }
+  .btl.penuh{border-color:#3E8FB0}
+  .btl:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+
   .glasses{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
   .gl{
     width:34px;height:42px;border:2px solid #C3C7BE;border-radius:4px 4px 9px 9px;
@@ -565,14 +585,10 @@
     <div class="h2">Jadwal &amp; Checklist</div>
     <div id="tasks"></div>
 
-    <div class="h2">Air Minum · target 8 gelas</div>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:baseline">
-        <div style="font-size:13px;color:var(--ink-soft)">Ketuk gelas untuk menandai</div>
-        <div style="font-family:var(--display);font-size:22px;font-weight:700" id="wCount">0/8</div>
-      </div>
-      <div class="glasses" id="glasses"></div>
-    </div>
+    <div class="h2">Air Minum</div>
+    <div class="card" id="airCard"></div>
+
+    <div id="kesimpulan"></div>
   </section>
 
   <!-- ================= MENU ================= -->
@@ -1217,6 +1233,7 @@ function alasanGabungan(daftarNama){
 }
 const TARGET_K=1700, TARGET_P=125;
 const TARGET_PCT=70;               // ambang sebuah hari dihitung konsisten
+const TARGET_ML=2000, BOTOL_ML=800, GELAS_ML=250;   // air: target harian & ukuran botol
 const SUSUL_HARI=5, SUSUL_MAX=2;   // batas kartu "latihan yang kelewat"
 
 function schedule(dow){
@@ -1269,7 +1286,12 @@ const parseYmd=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c
 const fmt=d=>HARI[d.getDay()]+", "+d.getDate()+" "+BULAN[d.getMonth()]+" "+d.getFullYear();
 const $=s=>document.querySelector(s);
 
-function day(k){ if(!ST.days[k]) ST.days[k]={c:{},w:0,m:{}}; return ST.days[k]; }
+function day(k){
+  if(!ST.days[k]) ST.days[k]={c:{},w:0,m:{}};
+  const d=ST.days[k];
+  if(d.ml==null) d.ml=(d.w||0)*GELAS_ML;    // pindahan dari hitungan gelas ke ml
+  return d;
+}
 function skips(k){ const dd=day(k); if(!dd.s) dd.s={}; return dd.s; }
 
 /* ===== PENYIMPANAN =====
@@ -1776,14 +1798,107 @@ function renderToday(){
 
   renderSum();
 
-  const g=$("#glasses"); g.innerHTML=""; $("#wCount").textContent=(dd.w||0)+"/8";
-  for(let i=1;i<=8;i++){
-    const b=document.createElement("button");
-    b.className="gl"+(i<=(dd.w||0)?" on":"");
-    b.setAttribute("aria-label","Gelas ke-"+i);
-    b.onclick=()=>{ dd.w = (dd.w===i?i-1:i); save(); renderToday(); };
-    g.appendChild(b);
+  renderAir();
+  renderKesimpulan();
+}
+
+const rb=n=>n.toLocaleString("id-ID");           // 2000 -> "2.000"
+
+function setAir(ml){
+  const dd=day(ymd(cur));
+  dd.ml=Math.max(0,Math.round(ml));
+  dd.w=Math.round(dd.ml/GELAS_ML);               // biar data lama tetap masuk akal
+  save(); renderToday();
+}
+
+function renderAir(){
+  const dd=day(ymd(cur)), ml=dd.ml||0;
+  const persen=Math.min(100,Math.round(ml/TARGET_ML*100));
+  const sisa=Math.max(0,TARGET_ML-ml);
+  const jmlBotol=Math.ceil(TARGET_ML/BOTOL_ML);
+
+  let botol="", terisi=0;
+  for(let i=0;i<jmlBotol;i++){
+    const kap=Math.min(BOTOL_ML, TARGET_ML-i*BOTOL_ML);   // botol terakhir boleh separuh
+    const isi=Math.max(0,Math.min(kap, ml-terisi)); terisi+=kap;
+    botol+=`<button class="btl${isi>=kap?" penuh":""}" type="button" data-i="${i}"
+      aria-label="Isi sampai botol ke-${i+1}"><span class="isi" style="height:${isi/kap*100}%"></span>
+      <span class="cap">${kap}</span></button>`;
   }
+
+  $("#airCard").innerHTML=`<div class="airtop">
+      <div>
+        <div class="airnum">${rb(ml)}<small> / ${rb(TARGET_ML)} ml</small></div>
+        <div class="airsub">${sisa?`kurang ${rb(sisa)} ml`:"target tercapai"} · botol kamu ${BOTOL_ML} ml</div>
+      </div>
+      <div class="airpct">${persen}%</div>
+    </div>
+    <div class="bar" style="margin-top:11px"><div class="filla" style="width:${persen}%"></div></div>
+    <div class="botolrow">${botol}</div>
+    <div class="dact">
+      <button class="dbtn go" data-t="botol" type="button">+ ${BOTOL_ML} ml</button>
+      <button class="dbtn" data-t="separuh" type="button">+ ${BOTOL_ML/2} ml</button>
+      <button class="dbtn" data-t="gelas" type="button">+ ${GELAS_ML} ml</button>
+      <button class="dbtn" data-t="kurang" type="button">− ${GELAS_ML}</button>
+    </div>`;
+
+  $("#airCard").querySelectorAll(".btl").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    const sampai=Math.min(TARGET_ML,(i+1)*BOTOL_ML);
+    setAir(ml>=sampai ? Math.min(TARGET_ML,i*BOTOL_ML) : sampai);   // ketuk lagi untuk mundur
+  });
+  $("#airCard").querySelectorAll(".dbtn").forEach(b=>b.onclick=()=>{
+    const t=b.dataset.t;
+    setAir(ml + (t==="botol"?BOTOL_ML : t==="separuh"?BOTOL_ML/2 : t==="gelas"?GELAS_ML : -GELAS_ML));
+  });
+}
+
+/* ===== KESIMPULAN HARIAN =====
+   Muncul setelah semua baris jadwal selesai dicek — entah dicentang
+   atau sengaja dilewati. */
+function renderKesimpulan(){
+  const box=$("#kesimpulan"); box.innerHTML="";
+  const k=ymd(cur), dd=day(k), sk=dd.s||{};
+  const tasks=schedule(cur.getDay());
+  if(!tasks.every(t=>dd.c[t.id]||sk[t.id])) return;
+
+  const g=totalGizi(), x=exStat(), ml=dd.ml||0, p=dayPct(k);
+  const lolos=[
+    p>=TARGET_PCT,
+    Math.abs(g.k-TARGET_K)<=250,
+    g.p>=TARGET_P*0.9,
+    x.total>0 && x.done>=x.total,
+    ml>=TARGET_ML
+  ];
+  const n=lolos.filter(Boolean).length;
+  const nilai = n>=5 ? {v:"ok", t:"Hari sempurna. Kelima-limanya kena."}
+    : n===4 ? {v:"ok", t:"Hari yang bagus. Tinggal satu yang meleset."}
+    : n===3 ? {v:"", t:"Lumayan, tapi masih ada yang bolong."}
+    : {v:"low", t:"Hari ini banyak yang lewat. Besok mulai dari yang paling gampang saja."};
+
+  const kurang=[];
+  if(!lolos[0]) kurang.push(`checklist baru ${p}%, belum tembus ${TARGET_PCT}%`);
+  if(!lolos[1]) kurang.push(g.k<TARGET_K ? `kalori kurang ${rb(TARGET_K-g.k)}` : `kalori lebih ${rb(g.k-TARGET_K)}`);
+  if(!lolos[2]) kurang.push(`protein kurang ${Math.max(0,TARGET_P-g.p)} g`);
+  if(!lolos[3]) kurang.push(`latihan ${x.done}/${x.total} gerakan`);
+  if(!lolos[4]) kurang.push(`air kurang ${rb(TARGET_ML-ml)} ml`);
+
+  const st=(v,ket,ok)=>`<div class="st"><div class="v" style="${ok?"":"color:var(--stone)"}">${v}</div><div class="k">${ket}</div></div>`;
+  const h=document.createElement("div"); h.className="h2";
+  h.textContent="Kesimpulan Hari Ini";
+  box.appendChild(h);
+
+  const c=document.createElement("div"); c.className="card";
+  c.innerHTML=`<div class="stats">
+      ${st(p+"%","Checklist",lolos[0])}
+      ${st(rb(g.k),"Kalori",lolos[1])}
+      ${st(g.p+'<span class="u"> g</span>',"Protein",lolos[2])}
+      ${st(x.done+"/"+x.total,"Latihan",lolos[3])}
+      ${st(rb(ml)+'<span class="u"> ml</span>',"Air",lolos[4])}
+      ${st(n+"/5","Tercapai",n>=4)}
+    </div>
+    <div class="verd${nilai.v?" "+nilai.v:""}">${nilai.t}${kurang.length?`<div class="jika"><b>Yang meleset:</b> ${kurang.join(", ")}.</div>`:""}</div>`;
+  box.appendChild(c);
 }
 
 function pick(arr,slot){
