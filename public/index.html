@@ -427,7 +427,8 @@
   }
   .lvl.wajib,.lvl.stop{background:var(--chili);color:#fff}
   .lvl.disarankan,.lvl.batasi{background:var(--turmeric);color:#3B2A05}
-  .lvl.boleh{background:#DDE0D8;color:var(--ink-soft)}
+  .lvl.boleh,.lvl.opsional{background:#DDE0D8;color:var(--ink-soft)}
+  .task.skip .lvl{opacity:.5}
   .lvl.cukup{background:var(--jade);color:#fff}
   .jika{
     margin-top:8px;padding-top:8px;border-top:1px dashed rgba(16,22,20,.18);
@@ -1237,41 +1238,43 @@ const TARGET_ML=2000, BOTOL_ML=800, GELAS_ML=250;   // air: target harian & ukur
 const SUSUL_HARI=5, SUSUL_MAX=2;   // batas kartu "latihan yang kelewat"
 
 function schedule(dow){
-
-
+  /* lv = seberapa penting baris ini untuk hasil programnya:
+     wajib      — langsung menentukan defisit kalori atau pemulihan
+     disarankan — menambah hasil, tapi bukan penentu
+     opsional   — kerjakan kalau perlu saja; lewati kalau tidak */
   const kerja = dow>=1 && dow<=5;
   if(kerja) return [
-    {id:"bangun",tm:"05.15",t:"Bangun + 2 gelas air putih",d:"Air dulu sebelum kopi. Bantu bangunin metabolisme."},
-    {id:"latihan",tm:"05.00",t:"Plank 40 detik \u00d7 5",d:"Satu set tiap habis sholat: Subuh, Dzuhur, Ashar, Maghrib, Isya."},
-    {id:"sarapan",tm:"06.30",t:"Sarapan",d:"Lihat tab Menu untuk pilihan hari ini."},
-    {id:"berangkat",tm:"07.00",t:"Berangkat kerja",d:"Kalau bisa, parkir agak jauh biar nambah langkah."},
-    {id:"siang",tm:"12.00",t:"Makan siang",d:"Nasi setengah porsi. Air putih, bukan es teh manis."},
-    {id:"jalan",tm:"12.40",t:"Jalan kaki 15 menit",d:"Keliling MIM juga cukup. Bantu kontrol gula darah setelah makan."},
-    {id:"snack",tm:"15.30",t:"Snack (kalau lapar)",d:"Jam paling rawan gorengan. Sudah siapkan dari rumah?"},
-    {id:"malam",tm:"18.30",t:"Makan malam",d:"Lauk + sayur, tanpa nasi. Jangan di-skip total."},
-    {id:"stop",tm:"21.00",t:"Stop makan",d:"Setelah ini air putih atau teh tawar saja."},
-    {id:"tidur",tm:"22.30",t:"Tidur",d:"Target 7 jam. Kurang tidur = besok lapar berlebihan."}
+    {id:"bangun",tm:"05.15",t:"Bangun + 2 gelas air putih",lv:"disarankan",d:"Air dulu sebelum kopi. Bantu bangunin metabolisme."},
+    {id:"latihan",tm:"05.00",t:"Plank 40 detik \u00d7 5",lv:"wajib",d:"Satu set tiap habis sholat: Subuh, Dzuhur, Ashar, Maghrib, Isya."},
+    {id:"sarapan",tm:"06.30",t:"Sarapan",lv:"wajib",d:"Lihat tab Menu untuk pilihan hari ini."},
+    {id:"berangkat",tm:"07.00",t:"Berangkat kerja",lv:"opsional",d:"Kalau bisa, parkir agak jauh biar nambah langkah."},
+    {id:"siang",tm:"12.00",t:"Makan siang",lv:"wajib",d:"Nasi setengah porsi. Air putih, bukan es teh manis."},
+    {id:"jalan",tm:"12.40",t:"Jalan kaki 15 menit",lv:"disarankan",d:"Keliling MIM juga cukup. Bantu kontrol gula darah setelah makan."},
+    {id:"snack",tm:"15.30",t:"Snack (kalau lapar)",lv:"opsional",d:"Jam paling rawan gorengan. Sudah siapkan dari rumah?"},
+    {id:"malam",tm:"18.30",t:"Makan malam",lv:"wajib",d:"Lauk + sayur, tanpa nasi. Jangan di-skip total."},
+    {id:"stop",tm:"21.00",t:"Stop makan",lv:"wajib",d:"Setelah ini air putih atau teh tawar saja."},
+    {id:"tidur",tm:"22.30",t:"Tidur",lv:"wajib",d:"Target 7 jam. Kurang tidur = besok lapar berlebihan."}
   ];
   if(dow===0) return [
-    {id:"bangun",tm:"06.00",t:"Bangun + air putih",d:""},
-    {id:"sarapan",tm:"06.15",t:"Sarapan ringan",d:"Pisang + telur. Jangan main dengan perut kosong."},
-    {id:"latihan",tm:"07.00",t:"Treadmill interval 30 menit",d:"Treadmill rata. Plank tetap jalan tiap habis sholat."},
-    {id:"siang",tm:"12.00",t:"Makan siang",d:"Boleh porsi normal, tetap nasi setengah."},
-    {id:"badminton",tm:"14.00",t:"Badminton",d:"Main seperti biasa, 60\u201390 menit."},
-    {id:"snack",tm:"15.30",t:"Snack",d:""},
-    {id:"malam",tm:"18.30",t:"Makan malam",d:"Lauk + sayur."},
-    {id:"timbang",tm:"20.00",t:"Rekap mingguan",d:"Catat berat & lingkar perut di tab Progres."},
-    {id:"tidur",tm:"22.30",t:"Tidur",d:"Besok Senin, latihan pagi."}
+    {id:"bangun",tm:"06.00",t:"Bangun + air putih",lv:"disarankan",d:""},
+    {id:"sarapan",tm:"06.15",t:"Sarapan ringan",lv:"wajib",d:"Pisang + telur. Jangan main dengan perut kosong."},
+    {id:"latihan",tm:"07.00",t:"Treadmill interval 30 menit",lv:"wajib",d:"Treadmill rata. Plank tetap jalan tiap habis sholat."},
+    {id:"siang",tm:"12.00",t:"Makan siang",lv:"wajib",d:"Boleh porsi normal, tetap nasi setengah."},
+    {id:"badminton",tm:"14.00",t:"Badminton",lv:"disarankan",d:"Main seperti biasa, 60\u201390 menit."},
+    {id:"snack",tm:"15.30",t:"Snack",lv:"opsional",d:""},
+    {id:"malam",tm:"18.30",t:"Makan malam",lv:"wajib",d:"Lauk + sayur."},
+    {id:"timbang",tm:"20.00",t:"Rekap mingguan",lv:"disarankan",d:"Catat berat & lingkar perut di tab Progres."},
+    {id:"tidur",tm:"22.30",t:"Tidur",lv:"wajib",d:"Besok Senin, plank lagi tiap habis sholat."}
   ];
   return [
-    {id:"bangun",tm:"06.30",t:"Bangun + air putih",d:""},
-    {id:"latihan",tm:"07.00",t:"Treadmill 45 menit",d:"Jalan cepat konstan di treadmill rata. Plank tetap tiap habis sholat."},
-    {id:"sarapan",tm:"08.00",t:"Sarapan",d:"Weekend bukan alasan skip sarapan."},
-    {id:"siang",tm:"12.30",t:"Makan siang",d:"Nasi setengah porsi tetap berlaku."},
-    {id:"snack",tm:"16.00",t:"Snack",d:""},
-    {id:"malam",tm:"18.30",t:"Makan malam",d:"Lauk + sayur."},
-    {id:"stop",tm:"21.00",t:"Stop makan",d:""},
-    {id:"tidur",tm:"23.00",t:"Tidur",d:""}
+    {id:"bangun",tm:"06.30",t:"Bangun + air putih",lv:"disarankan",d:""},
+    {id:"latihan",tm:"07.00",t:"Treadmill 45 menit",lv:"wajib",d:"Jalan cepat konstan di treadmill rata. Plank tetap tiap habis sholat."},
+    {id:"sarapan",tm:"08.00",t:"Sarapan",lv:"wajib",d:"Weekend bukan alasan skip sarapan."},
+    {id:"siang",tm:"12.30",t:"Makan siang",lv:"wajib",d:"Nasi setengah porsi tetap berlaku."},
+    {id:"snack",tm:"16.00",t:"Snack",lv:"opsional",d:""},
+    {id:"malam",tm:"18.30",t:"Makan malam",lv:"wajib",d:"Lauk + sayur."},
+    {id:"stop",tm:"21.00",t:"Stop makan",lv:"wajib",d:""},
+    {id:"tidur",tm:"23.00",t:"Tidur",lv:"wajib",d:""}
   ];
 }
 
@@ -1559,7 +1562,7 @@ function saranGizi(){
     return {v:"over", lvl:"stop", aksi:"berhenti makan hari ini",
       t:`Sudah lebih <b>${-sisaK} kkal</b> dari target. Cukup air putih atau teh tawar sampai besok.`,
       jikaLab:"Kalau ditambah lagi",
-      jika:"defisit hari ini habis dan berbalik jadi surplus. Sehari begini tidak merusak program, tapi kalau berulang, timbangan berhenti turun. Besok cukup kembali ke porsi normal — jangan dibalas dengan puasa."};
+      jika:`defisit hari ini habis dan berbalik jadi surplus. Sehari begini belum merusak apa pun — 1 kg lemak setara sekitar 7.700 kkal, jadi kelebihan ${-sisaK} kkal cuma setara ${((-sisaK)/7700).toFixed(2).replace(".",",")} kg, itu pun sebagian air dan isi usus. Yang merusak kalau berulang tiap minggu, karena defisit lima hari bisa habis dimakan dua hari kelebihan. Besok cukup kembali ke porsi normal — jangan dibalas puasa, karena itu yang memicu siklus jebol–puasa–jebol.`};
 
   // jam makan sudah tutup
   if(jam>=21){
@@ -1567,7 +1570,7 @@ function saranGizi(){
       return {v:"low", lvl:"cukup", aksi:"biarkan, jam makan sudah tutup",
         t:`Kurang <b>${sisaK} kkal</b> tapi sudah lewat jam 21.00. Malam ini tidak usah dikejar.`,
         jikaLab:"Kalau sering begini",
-        jika:"badan menyesuaikan diri dengan asupan rendah — metabolisme melambat, otot ikut susut, dan besoknya lapar berlebihan sampai jebol. Besok pastikan sarapan dan makan siangnya tidak dilewat."};
+        jika:"badan menyesuaikan diri dengan asupan rendah. Dalam beberapa hari beruntun, pembakaran harian bisa turun sekitar 10–15% karena tubuh menghemat energi; protein mulai dipakai jadi bahan bakar sehingga otot ikut susut; dan hormon lapar menumpuk sampai biasanya jebol di akhir pekan. Yang paling menentukan besok bukan menahan lapar, tapi memastikan sarapan dan makan siang tidak dilewat."};
     return {v:"ok", lvl:"cukup", aksi:"berhenti makan",
       t:"Asupan hari ini sudah cukup dan jam makan sudah tutup.",
       jikaLab:"Kalau tetap ngemil",
@@ -1582,20 +1585,20 @@ function saranGizi(){
     return {v:"low", lvl:"batasi", aksi:"sisakan jatah untuk makan malam",
       t:`Baru ${namaJam} tapi sudah <b>${g.k} kkal</b>. Sisa <b>${sisaK} kkal</b> harus cukup sampai malam — pakai untuk lauk, bukan camilan.`,
       jikaLab:"Kalau terus ngemil sekarang",
-      jika:"jatah makan malam habis. Makan malam yang dilewat bikin lapar tengah malam, dan itu yang biasanya berakhir di mi instan."};
+      jika:`jatah makan malam habis. Makan malam yang dilewat bikin lapar tengah malam, dan itu yang biasanya berakhir di mi instan — sekali kejadian, kalorinya bisa melebihi apa yang tadi kamu hemat. Sisa ${sisaK} kkal lebih baik dipakai untuk lauk berprotein: dengan kalori yang sama, protein bikin kenyang jauh lebih lama daripada camilan.`};
 
   // pas di target
   if(sisaK<=150 && sisaP<=15)
     return {v:"ok", lvl:"cukup", aksi:"tidak perlu makan lagi",
       t:"Kalori dan protein hari ini sudah pas di target.",
       jikaLab:"Kalau ditambah",
-      jika:"defisit hari ini tergerus. Cukup air putih saja."};
+      jika:"defisit hari ini tergerus. Target 1.700 kkal sudah dihitung untuk turun sekitar 0,5 kg per minggu; tambahan 300–400 kkal saja sudah memangkas hasil mingguan kira-kira seperempatnya. Cukup air putih saja."};
 
   // kalori cukup, protein kurang
   if(sisaK<=150 && sisaP>15)
     return {v:"low", lvl: sisaP>35?"wajib":"disarankan", aksi:"tambah lauk tanpa nasi",
       t:`Kalori sudah cukup tapi protein kurang <b>${sisaP} g</b>. Tambahannya: ${caraProtein}.`,
-      jika:"kalorinya tetap aman, tapi yang turun bisa ikut otot — bukan cuma lemak. Efeknya perut mengecil tapi badan jadi lembek, dan metabolisme ikut melambat."};
+      jika:"kalorinya tetap aman, tapi yang turun bisa ikut otot — bukan cuma lemak. Saat sedang defisit dan protein kurang, tubuh memakai jaringan otot sebagai sumber energi karena protein dari makanan tidak cukup untuk memperbaikinya. Timbangan memang turun, tapi bentuk badan jadi lembek, dan otot yang hilang menurunkan pembakaran hariannya — otot itulah yang membakar kalori bahkan saat kamu diam."};
 
   // masih ada jatah
   const berikut = jam<12?"makan siang" : jam<15.5?"snack sore" : jam<18.5?"makan malam" : "sisa malam ini";
@@ -1607,10 +1610,10 @@ function saranGizi(){
     ? `Proteinnya ketinggalan — baru ${g.p} g dari ${g.k} kkal yang masuk. <b>Dahulukan lauk</b>: ayam, ikan, telur, atau tempe, baru sisanya nasi.`
     : "Proteinnya sudah sejalan dengan kalorinya — pertahankan pola porsi yang sama.";
   const jika = lvl==="wajib"
-    ? `hari ini berhenti di <b>${g.k} kkal</b>, ${sisaK} kkal di bawah target. Defisit sebesar itu bukan mempercepat hasil — badan malah hemat energi, otot ikut kepakai, dan besok lapar berlebihan.`
+    ? `hari ini berhenti di <b>${g.k} kkal</b> — ${sisaK} kkal di bawah target, dan hari sudah sore jadi peluang menutupnya tinggal sedikit. Defisit sebesar ini tidak mempercepat apa pun: turun 0,5 kg lemak per minggu cuma butuh kekurangan sekitar 500 kkal sehari, selebihnya diambil dari otot dan cairan. Efek berantainya — tubuh menurunkan pembakaran harian supaya hemat, otot yang menyusut bikin kebutuhan kalorimu ikut turun, dan rasa lapar menumpuk sampai biasanya jebol malam ini atau besok pagi.`
     : lvl==="disarankan"
-    ? `hari ini berhenti di <b>${g.k} kkal</b>. Sesekali masih boleh, tapi jangan jadi pola tiap hari.`
-    : `tidak apa-apa. Kamu sudah dekat target, selisih ${sisaK} kkal tidak berarti banyak.`;
+    ? `hari ini berhenti di <b>${g.k} kkal</b>, ${sisaK} kkal di bawah target. Sekali dua kali aman — tubuh cuma memakai cadangan glikogen dan besok kembali normal. Yang jadi soal kalau berulang tiap hari: di bawah sekitar 1.200 kkal tubuh mulai menurunkan pembakaran hariannya, dan tanpa protein yang cukup sebagian berat yang turun diambil dari otot. Otot berkurang berarti kebutuhan kalori harianmu ikut turun, jadi berat gampang naik lagi begitu makan normal — dan itulah kenapa banyak orang berat badannya balik setelah diet ketat.`
+    : `tidak apa-apa. Selisih ${sisaK} kkal masih di bawah margin kesalahan menaksir porsi warung, jadi tidak berpengaruh ke hasil. Yang menentukan rata-rata seminggu, bukan angka satu hari.`;
   return {v:"", lvl, aksi:berikut, t:`Masih ada <b>${sisaK} kkal</b> untuk ${berikut}. ${inti}`, jika};
 }
 
@@ -1777,7 +1780,7 @@ function renderToday(){
     if(lewat) el.setAttribute("aria-disabled","true");
     el.innerHTML=`<div class="time">${t.tm}</div>
       <div class="box"><svg viewBox="0 0 12 12" fill="none"><path d="M1 6l3.2 3.2L11 2.4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="tx"><div class="t">${t.t}</div>${t.d?`<div class="d">${t.d}</div>`:""}</div>
+      <div class="tx"><div class="t">${t.t}${t.lv?` <span class="lvl ${t.lv}">${t.lv}</span>`:""}</div>${t.d?`<div class="d">${t.d}</div>`:""}</div>
       <button class="skipb" type="button" aria-label="${lewat?"Batalkan lewati":"Lewati"} ${t.t}">${lewat?"Batal":"Lewati"}</button>`;
     const tog=()=>{ if(lewat) return; dd.c[t.id]=!dd.c[t.id]; save(); renderToday(); renderTrack(); renderKons(); };
     el.onclick=tog;
