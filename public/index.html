@@ -1455,13 +1455,70 @@ function exStat(){
   return {done, total, menit: menit>=5?menit:0};
 }
 
+/* Apa yang sebaiknya dilakukan dengan angka sekarang.
+   Jamnya ikut dihitung: 800 kkal jam 10 pagi lain artinya dengan
+   800 kkal jam 9 malam. Mengembalikan kelas .verd + kalimatnya. */
+function saranGizi(){
+  const g=totalGizi();
+  const sisaK=Math.round(TARGET_K-g.k), sisaP=Math.round(TARGET_P-g.p);
+  /* Gap kecil enak disebut dalam telur; gap besar tidak \u2014 "9 telur rebus"
+     bukan saran, jadi di atas 24 g dinyatakan sebagai berat lauk. */
+  const telur=Math.max(1,Math.round(sisaP/6));                    // 1 telur \u2248 6 g protein
+  const gramLauk=Math.round(sisaP/31*100/10)*10;                  // dada ayam \u2248 31 g protein / 100 g
+  const caraProtein = sisaP<=24
+    ? `sekitar ${telur} telur rebus, atau tahu dan tempe kukus`
+    : `porsi lauk yang serius \u2014 sekitar ${gramLauk} g dada ayam atau ikan, boleh dibagi dengan telur`;
+  const now=new Date(), jam=now.getHours()+now.getMinutes()/60;
+
+  if(ymd(cur)!==ymd(now))
+    return {v:"", t:`Hari itu tercatat <b>${g.k} kkal</b> dan <b>${g.p} g protein</b>. Saran tindakan hanya muncul untuk hari yang sedang berjalan.`};
+
+  if(g.k===0)
+    return {v:"", t:"Belum ada yang masuk hitungan. Centang baris makannya kalau kamu makan sesuai saran, atau catat sendiri lewat <b>Isi sendiri</b>."};
+
+  // sudah kelewat target
+  if(sisaK < -250)
+    return {v:"over", t:`Sudah lebih <b>${-sisaK} kkal</b> dari target. <b>Stop makan</b> hari ini, cukup air putih atau teh tawar. Besok jangan dibalas dengan puasa \u2014 cukup kembali ke porsi normal.`};
+
+  // jam makan sudah tutup
+  if(jam>=21){
+    if(sisaK>400)
+      return {v:"low", t:`Kurang <b>${sisaK} kkal</b> dan sudah lewat jam 21.00. Malam ini biarkan saja, tapi jangan jadi kebiasaan \u2014 makan terlalu sedikit bikin otot ikut hilang, bukan cuma lemak.`};
+    return {v:"ok", t:"Jam makan sudah tutup. Sisanya air putih atau teh tawar sampai besok pagi."};
+  }
+
+  // jatah habis kecepatan
+  const jatah = jam<10?400 : jam<15?1100 : jam<17.5?1270 : TARGET_K;
+  const namaJam = jam<10?"pagi" : jam<15?"siang" : jam<17.5?"sore" : "malam";
+  if(sisaK>0 && g.k>jatah+300)
+    return {v:"low", t:`Baru ${namaJam} tapi sudah <b>${g.k} kkal</b>. Sisa <b>${sisaK} kkal</b> harus cukup sampai makan malam \u2014 pakai untuk lauk, bukan camilan.`};
+
+  // pas di target
+  if(sisaK<=150 && sisaP<=15)
+    return {v:"ok", t:"Sudah pas di target. <b>Tidak perlu makan lagi</b>, cukup air putih."};
+
+  // kalori cukup, protein kurang
+  if(sisaK<=150 && sisaP>15)
+    return {v:"low", t:`Kalori sudah cukup tapi protein kurang <b>${sisaP} g</b>. Tambah protein <b>tanpa nasi</b>: ${caraProtein}.`};
+
+  // masih ada jatah
+  const berikut = jam<10?"makan siang" : jam<15?"snack sore" : jam<17.5?"makan malam" : "sisa malam ini";
+  /* Siang hari protein pasti belum terkumpul penuh, jadi yang dinilai
+     bukan sisanya melainkan proporsinya terhadap kalori yang sudah masuk. */
+  const rasio=g.p/g.k*100, rasioTarget=TARGET_P/TARGET_K*100;
+  if(rasio < rasioTarget-0.5)
+    return {v:"", t:`Masih ada <b>${sisaK} kkal</b> untuk ${berikut}. Proteinnya ketinggalan \u2014 baru ${g.p} g dari ${g.k} kkal yang masuk. <b>Dahulukan lauk</b>: ayam, ikan, telur, atau tempe, baru sisanya nasi.`};
+  return {v:"", t:`Masih ada <b>${sisaK} kkal</b> untuk ${berikut}. Proteinnya sudah sejalan dengan kalorinya \u2014 pertahankan pola porsi yang sama.`};
+}
+
 function renderSum(){
-  const g=totalGizi(), x=exStat();
+  const g=totalGizi(), x=exStat(), s=saranGizi();
   $("#sumCard").innerHTML=`<div class="bar"><div class="fillk" style="width:${Math.min(100,g.k/TARGET_K*100)}%"></div></div>
     <div class="brow"><span>Kalori masuk</span><b>${g.k} / ${TARGET_K} kkal</b></div>
     <div class="bar" style="margin-top:11px"><div class="fillp" style="width:${Math.min(100,g.p/TARGET_P*100)}%"></div></div>
     <div class="brow"><span>Protein</span><b>${g.p} / ${TARGET_P} g</b></div>
     <div class="orow"><span>Olahraga</span><b>${x.done}/${x.total} gerakan${x.menit?` · ${x.menit} menit`:""}</b></div>
+    <div class="verd${s.v?" "+s.v:""}">${s.t}</div>
     <div class="dnote">Menu saran ikut dihitung setelah baris makannya dicentang. Makanan yang kamu catat sendiri selalu dihitung.</div>`;
 }
 
