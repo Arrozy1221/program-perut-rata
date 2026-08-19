@@ -216,6 +216,18 @@
   .tips > div + div{border-top:1px solid #EAEBE5}
   .tips b{display:block;margin-bottom:1px}
   .tips small{color:var(--ink-soft);font-size:12.5px;line-height:1.5}
+  .miss2{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--ink-soft)}
+  .miss2 li{margin-bottom:7px}
+  .miss2 li::marker{color:var(--chili)}
+  .miss2 b{color:var(--ink)}
+  .besok{
+    margin-top:12px;padding:10px 12px;border-radius:9px;
+    background:var(--jade-dim);color:#14544A;font-size:12.5px;line-height:1.5;
+  }
+  .biasnote{
+    padding:10px 12px;border-radius:9px;margin-bottom:10px;
+    background:var(--jade-dim);color:#14544A;font-size:12.5px;line-height:1.5;
+  }
   .rujuk{font-size:11.5px;color:var(--stone);line-height:1.55;margin-top:10px}
   .rujuk a{color:var(--jade);font-weight:600;text-decoration:none}
   .rujuk a:hover{text-decoration:underline}
@@ -1536,6 +1548,45 @@ function slotItems(id){                      // makanan yang dicatat sendiri unt
   const m=mealBy(id);
   return eatenList().map((x,i)=>({x,i})).filter(o=>o.x.s===m.lab);
 }
+/* Gizi yang masuk pada satu tanggal. Makanan yang dicatat sendiri selalu
+   dihitung; menu saran dihitung hanya kalau baris makannya dicentang. */
+function giziHari(k,bias){
+  const dd=ST.days[k]; if(!dd) return {k:0,p:0};
+  const eat=dd.eat||[], sk=dd.s||{}, c=dd.c||{};
+  let K=0,P=0;
+  MEALS.forEach(m=>{
+    const own=eat.filter(x=>x.s===m.lab);
+    if(own.length){
+      own.forEach(x=>{ const f=foodBy(x.n); if(f){ K+=f.k*x.q; P+=f.p*x.q; } });
+      return;
+    }
+    if(c[m.id] && !sk[m.id]){ const s=pickAt(m.arr,m.slot,k,bias); K+=s.k; P+=s.p; }
+  });
+  return {k:Math.round(K), p:Math.round(P)};
+}
+
+/* Hari kemarin dipakai apa adanya (tanpa bias) supaya tidak berantai
+   mundur tanpa henti. */
+function biasHari(k){
+  const d=parseYmd(k); d.setDate(d.getDate()-1);
+  const kem=ymd(d);
+  if(!ST.days[kem]) return null;
+  const g=giziHari(kem,null);
+  if(!g.k) return null;
+  if(g.p < TARGET_P*0.9)   return "protein";
+  if(g.k > TARGET_K+250)   return "ringan";
+  return null;
+}
+/* keterangan penyesuaian untuk ditampilkan, null kalau tidak ada */
+function infoBias(k){
+  const b=biasHari(k); if(!b) return null;
+  const d=parseYmd(k); d.setDate(d.getDate()-1);
+  const g=giziHari(ymd(d),null);
+  return b==="protein"
+    ? {b, t:`Kemarin protein cuma <b>${g.p} g</b> dari target ${TARGET_P} g, jadi menu hari ini diurutkan dari yang <b>proteinnya paling tinggi</b>.`}
+    : {b, t:`Kemarin kalori tembus <b>${rb(g.k)} kkal</b>, jadi menu hari ini diurutkan dari yang <b>paling ringan</b>.`};
+}
+
 function slotGizi(id){
   const own=slotItems(id);
   if(own.length){
@@ -1551,9 +1602,7 @@ function slotGizi(id){
   return {k:0,p:0,sendiri:false};
 }
 function totalGizi(){
-  let k=0,p=0;
-  MEALS.forEach(m=>{ const g=slotGizi(m.id); k+=g.k; p+=g.p; });
-  return {k:Math.round(k), p:Math.round(p)};
+  return giziHari(ymd(cur), biasHari(ymd(cur)));
 }
 function exStat(){
   const dd=day(ymd(cur)); if(!dd.ex) dd.ex={};
@@ -1700,7 +1749,7 @@ function mealDetail(m){
     };
   }else{
     const s=pick(m.arr,m.slot);
-    el.innerHTML=`<div class="dlab">Saran menu</div>
+    el.innerHTML=`<div class="dlab">Saran menu${biasHari(ymd(cur))?` · <span style="color:var(--jade)">disesuaikan</span>`:""}</div>
       <div class="dtit">${s.t}</div>
       <div class="macros"><span class="chip">${s.k} kkal</span><span class="chip p">${s.p} g protein</span></div>
       <div class="where"><span class="pin">📍</span><div><b>Beli di:</b> ${s.w}</div></div>
@@ -1918,12 +1967,34 @@ function renderKesimpulan(){
     : n===3 ? {v:"", t:"Lumayan, tapi masih ada yang bolong."}
     : {v:"low", t:"Hari ini banyak yang lewat. Besok mulai dari yang paling gampang saja."};
 
+  /* tiap yang meleset dijelaskan sendiri-sendiri lengkap dengan
+     ukuran nyatanya, supaya besok tahu persis harus menambal apa */
   const kurang=[];
-  if(!lolos[0]) kurang.push(`checklist baru ${p}%, belum tembus ${TARGET_PCT}%`);
-  if(!lolos[1]) kurang.push(g.k<TARGET_K ? `kalori kurang ${rb(TARGET_K-g.k)}` : `kalori lebih ${rb(g.k-TARGET_K)}`);
-  if(!lolos[2]) kurang.push(`protein kurang ${Math.max(0,TARGET_P-g.p)} g`);
-  if(!lolos[3]) kurang.push(`latihan ${x.done}/${x.total} gerakan`);
-  if(!lolos[4]) kurang.push(`air kurang ${rb(TARGET_ML-ml)} ml`);
+  if(!lolos[0])
+    kurang.push(`<b>Checklist ${p}%</b> \u2014 belum tembus ${TARGET_PCT}%. Baris yang memang tidak kamu kerjakan sebaiknya ditekan <b>Lewati</b>, biar tidak ikut jadi pembagi.`);
+  if(!lolos[1]){
+    const selisih=TARGET_K-g.k;
+    kurang.push(selisih>0
+      ? `<b>Kalori kurang ${rb(selisih)}</b> \u2014 kira-kira sepiring lauk dengan nasi setengah porsi. Kurang segini sesekali tidak apa-apa, tapi kalau tiap hari, pembakaran hariannya ikut turun.`
+      : `<b>Kalori lebih ${rb(-selisih)}</b> \u2014 setara sekitar ${((-selisih)/7700).toFixed(2).replace(".",",")} kg lemak, jadi belum merusak apa pun. Besok cukup kembali ke porsi normal.`);
+  }
+  if(!lolos[2]){
+    const sp=Math.max(0,TARGET_P-g.p);
+    kurang.push(`<b>Protein kurang ${sp} g</b> \u2014 setara sekitar ${Math.round(sp/6)} telur rebus atau ${Math.round(sp/31*100/10)*10} g dada ayam. Ini yang menjaga otot tidak ikut hilang saat berat turun.`);
+  }
+  if(!lolos[3])
+    kurang.push(`<b>Latihan ${x.done}/${x.total} gerakan</b> \u2014 sisa ${x.total-x.done} gerakan lagi. Kalau plank, itu cuma 40 detik per set.`);
+  if(!lolos[4]){
+    const sml=TARGET_ML-ml;
+    kurang.push(`<b>Air kurang ${rb(sml)} ml</b> \u2014 sekitar ${(sml/BOTOL_ML).toFixed(1).replace(".",",")} botol lagi. Haus sering kebaca sebagai lapar, jadi ini juga bantu menahan ngemil.`);
+  }
+
+  /* penyesuaian menu besok, dihitung dari hasil hari ini */
+  const besok=[];
+  if(g.p < TARGET_P*0.9)
+    besok.push("Menu besok akan diurutkan dari yang <b>proteinnya paling tinggi</b>.");
+  if(g.k > TARGET_K+250)
+    besok.push("Menu besok akan diurutkan dari yang <b>paling ringan kalorinya</b>.");
 
   const st=(v,ket,ok)=>`<div class="st"><div class="v" style="${ok?"":"color:var(--stone)"}">${v}</div><div class="k">${ket}</div></div>`;
   const h=document.createElement("div"); h.className="h2";
@@ -1939,14 +2010,34 @@ function renderKesimpulan(){
       ${st(rb(ml)+'<span class="u"> ml</span>',"Air",lolos[4])}
       ${st(n+"/5","Tercapai",n>=4)}
     </div>
-    <div class="verd${nilai.v?" "+nilai.v:""}">${nilai.t}${kurang.length?`<div class="jika"><b>Yang meleset:</b> ${kurang.join(", ")}.</div>`:""}</div>`;
+    <div class="verd${nilai.v?" "+nilai.v:""}">${nilai.t}</div>
+    ${kurang.length?`<div class="dlab" style="margin-top:13px">Yang belum tercapai</div>
+      <ul class="miss2">${kurang.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}
+    ${besok.length?`<div class="besok"><b>Menyesuaikan besok:</b> ${besok.join(" ")} Tombol <b>Ganti saran</b> tetap jalan kalau menunya tidak cocok.</div>`:""}`;
   box.appendChild(c);
 }
 
+const SLOTOFF={b:0,l:2,d:4,s:6};
+
+/* Menu satu slot untuk tanggal tertentu. bias diisi kalau menu hari itu
+   perlu menyesuaikan hasil kemarin:
+     "protein" — urutkan dari protein tertinggi
+     "ringan"  — urutkan dari kalori terendah
+   Tombol Ganti tetap jalan: offsetnya berjalan di urutan yang sudah dibias. */
+function pickAt(arr,slot,k,bias){
+  const dd=ST.days[k]||{};
+  const off=(dd.m&&dd.m[slot])||0;
+  if(bias){
+    const urut = bias==="protein" ? [...arr].sort((a,b)=>b.p-a.p)
+                                  : [...arr].sort((a,b)=>a.k-b.k);
+    return urut[off % urut.length];
+  }
+  const base=(parseYmd(k).getDay()+SLOTOFF[slot]) % 7;
+  return arr[(base+off) % arr.length];
+}
 function pick(arr,slot){
-  const k=ymd(cur), dd=day(k);
-  const base=(parseYmd(k).getDay()+ {b:0,l:2,d:4,s:6}[slot]) % 7;
-  return arr[(base + (dd.m[slot]||0)) % arr.length];
+  const k=ymd(cur);
+  return pickAt(arr,slot,k,biasHari(k));
 }
 function mealCard(slot,label,time,arr){
   const m=pick(arr,slot);
@@ -1965,6 +2056,12 @@ function mealCard(slot,label,time,arr){
 function renderMenu(){
   $("#mDay").textContent="— "+HARI[cur.getDay()];
   const box=$("#meals"); box.innerHTML="";
+  const bi=infoBias(ymd(cur));
+  if(bi){
+    const n=document.createElement("div"); n.className="biasnote";
+    n.innerHTML="↻ "+bi.t;
+    box.appendChild(n);
+  }
   const work=cur.getDay()>=1&&cur.getDay()<=5;
   box.appendChild(mealCard("b","Sarapan",work?"06.30":"08.00",B));
   box.appendChild(mealCard("l","Makan Siang",work?"12.00":"12.30",L));
