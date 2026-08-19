@@ -333,14 +333,18 @@
   .gcard{
     background:var(--card);border-radius:20px;max-width:400px;width:100%;
     max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 20px 60px rgba(16,22,20,.4);
   }
   .ghead{
     display:flex;align-items:center;gap:10px;padding:16px 18px;
     background:var(--ink);color:#F2F3EF;flex-shrink:0;
   }
   .ghead .nm2{flex:1;font-family:var(--display);font-size:21px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:1.1}
-  .gx{background:none;border:0;color:#9AA39E;font-size:19px;cursor:pointer;padding:2px 4px}
-  .gx:hover{color:#fff}
+  .gx{
+    background:none;border:0;color:#9AA39E;font-size:18px;cursor:pointer;flex-shrink:0;
+    width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+  }
+  .gx:hover{color:#fff;background:rgba(255,255,255,.12)}
   .gscroll{overflow-y:auto;padding:16px 18px 20px}
   svg.fig{
     width:100%;height:auto;max-height:180px;display:block;
@@ -405,12 +409,40 @@
   .fi .fn{flex:1;font-size:13.5px;min-width:0}
   .fi .fk{font-size:11.5px;color:var(--stone);font-variant-numeric:tabular-nums;white-space:nowrap}
   .fi .add{width:26px;height:26px;border-radius:7px;background:var(--jade);color:#fff;display:grid;place-items:center;font-size:16px;line-height:1;flex-shrink:0}
+  .fnote{
+    margin-top:9px;padding:8px 11px;border-radius:9px;
+    background:var(--jade-dim);color:#14544A;font-size:12.5px;font-weight:600;
+  }
+  .fnote[hidden]{display:none}
   .slotsel{border:1px solid var(--line);border-radius:7px;padding:4px 6px;font-family:var(--body);font-size:11.5px;background:#fff;color:var(--ink-soft)}
 
-  /* timer modal */
-  .modal{position:fixed;inset:0;background:rgba(16,22,20,.93);display:grid;place-items:center;z-index:100;padding:20px}
+  /* modal */
+  .modal{
+    position:fixed;inset:0;background:rgba(16,22,20,.74);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    display:grid;place-items:center;z-index:100;padding:20px;animation:mfade .18s ease;
+  }
   .modal[hidden]{display:none}
-  .mcard{background:var(--ink);border:1px solid #2E3833;border-radius:20px;padding:30px 26px;text-align:center;max-width:330px;width:100%;color:#F2F3EF}
+  .modal>*{animation:mpop .22s cubic-bezier(.2,.8,.3,1)}
+  @keyframes mfade{from{opacity:0}}
+  @keyframes mpop{from{opacity:0;transform:translateY(12px) scale(.97)}}
+
+  /* dialog tanya/kabar — pengganti alert & confirm bawaan browser */
+  .dcard{
+    background:var(--card);border-radius:18px;padding:21px 20px 17px;
+    max-width:340px;width:100%;box-shadow:0 20px 60px rgba(16,22,20,.4);
+  }
+  .dttl{
+    font-family:var(--display);font-size:21px;font-weight:700;line-height:1.1;
+    text-transform:uppercase;letter-spacing:.02em;
+  }
+  .dttl:empty{display:none}
+  .dmsg{font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px}
+  .dttl:empty + .dmsg{margin-top:0}
+  .dbtns{display:flex;gap:8px;margin-top:18px}
+  .dbtns .btn{flex:1;padding:11px 12px}
+
+  .mcard{background:var(--ink);border:1px solid #2E3833;border-radius:20px;padding:30px 26px;text-align:center;max-width:330px;width:100%;color:#F2F3EF;box-shadow:0 20px 60px rgba(0,0,0,.45)}
   .mcard .nm2{font-family:var(--display);font-size:22px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
   .clock{font-family:var(--display);font-size:76px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;margin:14px 0 4px;color:var(--turmeric)}
   .mcard .ph{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#8B938E;min-height:16px}
@@ -421,7 +453,7 @@
 
   footer{text-align:center;padding:26px 0 8px;font-size:11.5px;color:var(--stone)}
   .load{text-align:center;padding:36px;color:var(--stone);font-size:13px}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   @media(max-width:400px){
     h1{font-size:28px}
     .banner .val{font-size:23px}
@@ -620,7 +652,7 @@
 
 <!-- panduan gerakan -->
 <div class="modal" id="gmodal" hidden>
-  <div class="gcard">
+  <div class="gcard" role="dialog" aria-modal="true" aria-labelledby="gName">
     <div class="ghead"><div class="nm2" id="gName">—</div><button class="gx" id="gClose" aria-label="Tutup">✕</button></div>
     <div class="gscroll" id="gBody"></div>
   </div>
@@ -628,19 +660,32 @@
 
 <!-- pilih makanan -->
 <div class="modal" id="fmodal" hidden>
-  <div class="gcard">
+  <div class="gcard" role="dialog" aria-modal="true" aria-labelledby="fmTitle">
     <div class="ghead"><div class="nm2" id="fmTitle">Tambah makanan</div><button class="gx" id="fmClose" aria-label="Tutup">✕</button></div>
     <div class="gscroll">
       <input type="search" id="fmSearch" placeholder="Cari makanan… misal: ayam, nasi, tempe" style="width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;font-family:var(--body);font-size:15px">
       <div class="cats" id="fmCats"></div>
       <div id="fmList" class="flist"></div>
+      <div class="fnote" id="fmNote" hidden></div>
+    </div>
+  </div>
+</div>
+
+<!-- dialog -->
+<div class="modal" id="dmodal" hidden>
+  <div class="dcard" role="alertdialog" aria-modal="true" aria-labelledby="dTitle" aria-describedby="dBody">
+    <div class="dttl" id="dTitle"></div>
+    <div class="dmsg" id="dBody"></div>
+    <div class="dbtns">
+      <button class="btn ghost" id="dCancel" hidden>Batal</button>
+      <button class="btn" id="dOk">Oke</button>
     </div>
   </div>
 </div>
 
 <!-- timer -->
 <div class="modal" id="modal" hidden>
-  <div class="mcard">
+  <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="tName">
     <div class="nm2" id="tName">—</div>
     <div class="clock" id="tClock">00:30</div>
     <div class="ph" id="tPhase">Siap</div>
@@ -1241,8 +1286,9 @@ function mealDetail(m){
     });
     const [tambah,saran]=el.querySelectorAll(".dbtn");
     tambah.onclick=()=>openFood(m.lab);
-    saran.onclick=()=>{
-      if(!confirm("Hapus catatan makanan "+m.lab+" dan kembali ke menu saran?")) return;
+    saran.onclick=async()=>{
+      if(!await tanya("Catatan makanan "+m.lab.toLowerCase()+" akan dihapus, lalu diganti menu saran.",
+                      "Kembali ke saran?","Hapus & pakai saran","Batal")) return;
       const e=eatenList();
       for(let i=e.length-1;i>=0;i--) if(e[i].s===m.lab) e.splice(i,1);
       save(); renderCustom(); renderToday();
@@ -1300,7 +1346,7 @@ function exDetail(){
     <button class="dbtn go" type="button">Tambah</button>`;
   f.querySelector(".dbtn").onclick=()=>{
     const n=f.querySelector(".xn").value.trim();
-    if(!n){ alert("Isi nama olahraganya dulu."); return; }
+    if(!n){ kabar("Isi nama olahraganya dulu.","Belum lengkap"); return; }
     const mnt=parseInt(f.querySelector(".xm").value,10);
     dd.xe.push({n, m:isNaN(mnt)?0:mnt, on:true});
     save(); renderToday();
@@ -1315,7 +1361,8 @@ let fmSlot=null, fmCat="Semua", fmQ="";
 function openFood(slot){
   fmSlot=slot; fmCat="Semua"; fmQ=""; $("#fmSearch").value="";
   $("#fmTitle").textContent=slot;
-  renderFm(); $("#fmodal").hidden=false;
+  $("#fmNote").hidden=true;
+  renderFm(); bukaModal("fmodal");
 }
 function renderFm(){
   const cb=$("#fmCats"); cb.innerHTML="";
@@ -1332,13 +1379,16 @@ function renderFm(){
   list.slice(0,200).forEach(f=>{
     const el=document.createElement("div"); el.className="fi";
     el.innerHTML=`<div class="fn">${f.n}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
-    el.onclick=()=>addFood(f.n,fmSlot);
+    el.onclick=()=>{
+      const s=addFood(f.n,fmSlot);
+      const nt=$("#fmNote"); nt.textContent="✓ "+f.n+" masuk ke "+s; nt.hidden=false;
+    };
     fl.appendChild(el);
   });
 }
 $("#fmSearch").oninput=e=>{ fmQ=e.target.value; renderFm(); };
-$("#fmClose").onclick=()=>$("#fmodal").hidden=true;
-$("#fmodal").onclick=e=>{ if(e.target.id==="fmodal") $("#fmodal").hidden=true; };
+$("#fmClose").onclick=()=>tutupModal("fmodal");
+$("#fmodal").onclick=e=>{ if(e.target.id==="fmodal") tutupModal("fmodal"); };
 
 function renderToday(){
   const k=ymd(cur), dw=cur.getDay(), pr=PROGRAM[dw];
@@ -1463,6 +1513,7 @@ function addFood(name,slot){
   const ex=dd.eat.find(x=>x.n===name && x.s===s);
   if(ex) ex.q=+(ex.q+1).toFixed(1); else dd.eat.push({n:name,q:1,s});
   save(); renderCustom(); renderToday();
+  return s;                                  // slot yang benar-benar dipakai
 }
 function chgQty(i,d){
   const e=eatenList();
@@ -1602,10 +1653,10 @@ function openGuide(name){
          href="https://www.youtube.com/results?search_query=${encodeURIComponent("cara "+name+" yang benar")}">▶ Cari video gerakan ini di YouTube</a>`;
   }
   $("#gName").textContent=name;
-  $("#gmodal").hidden=false;
+  bukaModal("gmodal");
 }
-$("#gClose").onclick=()=>$("#gmodal").hidden=true;
-$("#gmodal").onclick=e=>{ if(e.target.id==="gmodal") $("#gmodal").hidden=true; };
+$("#gClose").onclick=()=>tutupModal("gmodal");
+$("#gmodal").onclick=e=>{ if(e.target.id==="gmodal") tutupModal("gmodal"); };
 
 /* konsistensi: berapa persen hari yang checklist-nya tembus ambang */
 function konsistensi(n){
@@ -1685,12 +1736,53 @@ function renderProg(){
 
 function renderAll(){ renderTrack(); renderToday(); renderMenu(); renderCustom(); renderTrain(); renderProg(); }
 
+/* ============================ MODAL & DIALOG ============================ */
+function kunciScroll(){
+  document.body.style.overflow = document.querySelector(".modal:not([hidden])") ? "hidden" : "";
+}
+function bukaModal(id){ document.getElementById(id).hidden=false; kunciScroll(); }
+function tutupModal(id){
+  const el=document.getElementById(id);
+  if(!el || el.hidden) return;
+  if(id==="modal"){ clearInterval(tv); trun=false; }   // timer ikut berhenti
+  el.hidden=true; kunciScroll();
+}
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape") return;
+  const buka=[...document.querySelectorAll(".modal:not([hidden])")];
+  if(!buka.length) return;
+  const atas=buka[buka.length-1];
+  if(atas.id==="dmodal"){ ($("#dCancel").hidden?$("#dOk"):$("#dCancel")).click(); return; }
+  tutupModal(atas.id);
+});
+
+/* pengganti alert() & confirm() bawaan browser */
+let dRes=null;
+function dialog(judul,pesan,ok,batal){
+  return new Promise(res=>{
+    dRes=res;
+    $("#dTitle").textContent=judul||"";
+    $("#dBody").innerHTML=pesan;
+    $("#dOk").textContent=ok||"Oke";
+    const c=$("#dCancel");
+    if(batal){ c.hidden=false; c.textContent=batal; } else c.hidden=true;
+    bukaModal("dmodal");
+    $("#dOk").focus();
+  });
+}
+function jawab(v){ tutupModal("dmodal"); const r=dRes; dRes=null; if(r) r(v); }
+$("#dOk").onclick=()=>jawab(true);
+$("#dCancel").onclick=()=>jawab(false);
+$("#dmodal").onclick=e=>{ if(e.target.id==="dmodal") jawab(false); };
+const kabar=(pesan,judul)=>dialog(judul,pesan);
+const tanya=(pesan,judul,ok,batal)=>dialog(judul,pesan,ok||"Ya",batal||"Batal");
+
 /* ============================ TIMER ============================ */
 let tv=null,tleft=0,trun=false,tname="";
 function openTimer(n,s){
   tname=n; tleft=s; trun=false; clearInterval(tv);
   $("#tName").textContent=n; $("#tPhase").textContent="Siap"; $("#tGo").textContent="Mulai";
-  paint(); $("#modal").hidden=false;
+  paint(); bukaModal("modal");
 }
 function paint(){
   const m=Math.floor(tleft/60), s=tleft%60;
@@ -1714,8 +1806,8 @@ $("#tGo").onclick=()=>{
     if(tleft<=0){ clearInterval(tv); trun=false; beep(); $("#tPhase").textContent="Selesai"; $("#tGo").textContent="Ulangi"; }
   },1000);
 };
-$("#tClose").onclick=()=>{ clearInterval(tv); trun=false; $("#modal").hidden=true; };
-$("#modal").onclick=e=>{ if(e.target.id==="modal"){ clearInterval(tv); trun=false; $("#modal").hidden=true; } };
+$("#tClose").onclick=()=>tutupModal("modal");
+$("#modal").onclick=e=>{ if(e.target.id==="modal") tutupModal("modal"); };
 
 /* ============================ EVENTS ============================ */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
@@ -1729,7 +1821,7 @@ $("#nextD").onclick=()=>{ cur.setDate(cur.getDate()+1); renderAll(); };
 $("#saveLog").onclick=()=>{
   const d=$("#iDate").value||ymd(new Date());
   const w=parseFloat($("#iW").value), p=parseFloat($("#iP").value);
-  if(isNaN(w)&&isNaN(p)){ alert("Isi berat atau lingkar perut dulu."); return; }
+  if(isNaN(w)&&isNaN(p)){ kabar("Isi berat atau lingkar perut dulu.","Belum ada angka"); return; }
   ST.logs=ST.logs.filter(x=>x.d!==d);
   ST.logs.push({d, w:isNaN(w)?null:w, p:isNaN(p)?null:p});
   $("#iW").value=""; $("#iP").value="";
@@ -1742,34 +1834,36 @@ $("#saveSet").onclick=()=>{
 };
 $("#saveCode").onclick=async()=>{
   const c=normCode($("#iCode").value);
-  if(c && !CODE_RE.test(c)){ alert(CODE_ERR); return; }
+  if(c && !CODE_RE.test(c)){ kabar(CODE_ERR,"Kode belum sesuai"); return; }
   codeSet(c); $("#iCode").value=c;          // tampilkan bentuk yang benar-benar dipakai
-  if(!c){ setMode("lokal"); alert("Sinkronisasi dimatikan. Data tetap tersimpan di perangkat ini."); return; }
+  if(!c){ setMode("lokal"); kabar("Data tetap tersimpan di perangkat ini.","Sinkronisasi dimatikan"); return; }
   try{
     const remote=await apiGet();
     if(remote && remote.days && Object.keys(remote.days).length){
-      if(confirm("Ada data di server dengan kode ini. Pakai data server? (Batal = kirim data perangkat ini ke server)")){
+      if(await tanya("Sudah ada data tersimpan di server dengan kode ini. Mau memakai data server, atau menimpanya dengan data perangkat ini?",
+                     "Data server ditemukan","Pakai data server","Kirim data perangkat ini")){
         ST=remote; renderAll();
       }
     }
     const ok=await apiSet(ST);
     setMode(ok?"server":"lokal");
-    alert(ok?"Sinkronisasi aktif. Pakai kode yang sama di perangkat lain.":"Server belum siap. Data tetap aman tersimpan di perangkat ini.");
-  }catch(e){ setMode("lokal"); alert("Belum bisa terhubung ke server. Data tetap tersimpan di perangkat ini."); }
+    if(ok) kabar("Pakai kode yang sama di perangkat lain supaya datanya menyatu.","Sinkronisasi aktif");
+    else kabar("Data tetap aman tersimpan di perangkat ini.","Server belum siap");
+  }catch(e){ setMode("lokal"); kabar("Data tetap tersimpan di perangkat ini.","Belum bisa terhubung"); }
 };
 $("#pullNow").onclick=async()=>{
   if(!codeGet()){
     // kode sudah diketik tapi belum ditekan "Aktifkan sinkronisasi"
     const c=normCode($("#iCode").value);
-    if(!c){ alert("Isi kode akses dulu, lalu ketuk Aktifkan sinkronisasi."); return; }
-    if(!CODE_RE.test(c)){ alert(CODE_ERR); return; }
+    if(!c){ kabar("Isi kode akses dulu, lalu ketuk <b>Aktifkan sinkronisasi</b>.","Kode masih kosong"); return; }
+    if(!CODE_RE.test(c)){ kabar(CODE_ERR,"Kode belum sesuai"); return; }
     codeSet(c); $("#iCode").value=c;
   }
   try{
     const r=await apiGet();
-    if(!r){ alert("Belum ada data di server untuk kode ini."); return; }
-    ST=r; renderAll(); setMode("server"); alert("Data terbaru berhasil diambil.");
-  }catch(e){ alert("Gagal mengambil data. Cek koneksi internet."); }
+    if(!r){ kabar("Belum ada data di server untuk kode ini.","Server masih kosong"); return; }
+    ST=r; renderAll(); setMode("server"); kabar("Data terbaru berhasil diambil.","Berhasil");
+  }catch(e){ kabar("Cek koneksi internet, lalu coba lagi.","Gagal mengambil data"); }
 };
 
 $("#exp").onclick=()=>{
@@ -1788,13 +1882,14 @@ $("#imp").onchange=e=>{
       const d=JSON.parse(r.result);
       if(!d.settings||!d.days) throw new Error("format");
       ST=d; save(); renderAll();
-      alert("Data berhasil dipulihkan.");
-    }catch(err){ alert("File tidak dikenali. Pilih file cadangan .json dari aplikasi ini."); }
+      kabar("Data berhasil dipulihkan.","Berhasil");
+    }catch(err){ kabar("Pilih file cadangan .json yang diunduh dari aplikasi ini.","File tidak dikenali"); }
   };
   r.readAsText(f); e.target.value="";
 };
-$("#reset").onclick=()=>{
-  if(!confirm("Hapus semua checklist, catatan berat, dan pengaturan? Tidak bisa dibatalkan.")) return;
+$("#reset").onclick=async()=>{
+  if(!await tanya("Semua checklist, catatan berat, dan pengaturan akan hilang. Tidak bisa dibatalkan.",
+                  "Hapus semua data?","Ya, hapus semua","Batal")) return;
   ST={settings:{start:ymd(new Date()),goal:66},days:{},logs:[]};
   save(); renderAll();
 };
