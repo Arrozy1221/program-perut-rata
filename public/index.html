@@ -836,17 +836,53 @@ const FOOD=[
  ["Nasi putih ½ porsi (±5 sdm)",130,2.7,"Karbo"],["Nasi putih 1 porsi warung",260,5.4,"Karbo"],
  ["Nasi merah ½ porsi",110,2.6,"Karbo"],["Nasi uduk ½ porsi",180,3,"Karbo"],
  ["Lontong 1 potong",80,1.5,"Karbo"],["Bihun goreng 1 porsi",300,6,"Karbo"],
- ["Mie goreng 1 porsi",380,8,"Karbo"],["Mie instan rebus 1 bungkus",350,8,"Karbo"],
+ ["Mie goreng 1 porsi",380,8,"Karbo"],["Mie instan rebus 1 bungkus",350,8,"Karbo","indomie mi"],
  ["Kentang rebus 100 g",87,2,"Karbo"],["Roti tawar 1 lembar",70,2.4,"Karbo"],
- ["Roti gandum 1 lembar",75,3.5,"Karbo"],["Ubi rebus 100 g",100,1.6,"Karbo"],
- ["Jagung rebus 1 buah",130,4,"Karbo"],["Singkong rebus 100 g",150,1.4,"Karbo"],
+ ["Roti gandum 1 lembar",75,3.5,"Karbo"],["Ubi rebus 100 g",100,1.6,"Karbo","boled"],
+ ["Jagung rebus 1 buah",130,4,"Karbo"],["Singkong rebus 100 g",150,1.4,"Karbo","sampeu"],
  ["Oatmeal 40 g kering",150,5,"Karbo"],["Bubur ayam 1 mangkuk",300,12,"Karbo"],
+ // khas bandung & sunda
+ ["Batagor 5 buah + bumbu",400,14,"Khas Bandung","baso tahu goreng"],
+ ["Siomay 5 buah + bumbu",350,15,"Khas Bandung","somay"],
+ ["Baso tahu kukus 5 buah",250,14,"Khas Bandung","bakso tahu"],
+ ["Seblak basah 1 porsi",400,10,"Khas Bandung"],
+ ["Seblak ceker 1 porsi",450,14,"Khas Bandung"],
+ ["Cuanki 1 mangkuk",300,13,"Khas Bandung"],
+ ["Baso aci 1 mangkuk",350,8,"Khas Bandung","bakso aci"],
+ ["Mie kocok 1 mangkuk",400,18,"Khas Bandung","mi kocok"],
+ ["Soto Bandung 1 mangkuk",220,18,"Khas Bandung"],
+ ["Kupat tahu 1 porsi",450,13,"Khas Bandung","ketupat tahu"],
+ ["Lotek 1 porsi (tanpa lontong)",300,11,"Khas Bandung"],
+ ["Karedok 1 porsi",250,9,"Khas Bandung"],
+ ["Nasi timbel komplit",750,35,"Khas Bandung"],
+ ["Nasi tutug oncom 1 porsi",350,9,"Khas Bandung","nasi TO"],
+ ["Nasi liwet 1 porsi",350,7,"Khas Bandung"],
+ ["Nasi bakar 1 bungkus",400,14,"Khas Bandung"],
+ ["Ayam bakakak ¼ ekor",280,30,"Khas Bandung"],
+ ["Sate maranggi 10 tusuk",420,30,"Khas Bandung"],
+ ["Oncom tumis 1 porsi",90,6,"Khas Bandung"],
+ ["Tahu Sumedang 5 buah",150,8,"Khas Bandung"],
+ ["Combro 1 buah",180,2.5,"Khas Bandung","oncom singkong"],
+ ["Misro 1 buah",170,1.5,"Khas Bandung"],
+ ["Cilok 5 buah + bumbu",200,3,"Khas Bandung","aci"],
+ ["Cimol 10 buah",230,2,"Khas Bandung","aci"],
+ ["Basreng 1 bungkus kecil",200,5,"Khas Bandung","baso goreng"],
+ ["Surabi oncom 1 buah",180,5,"Khas Bandung","serabi"],
+ ["Surabi kinca 1 buah",200,3,"Khas Bandung","serabi manis"],
+ ["Colenak 1 porsi",300,3,"Khas Bandung"],
+ ["Peuyeum 100 g",170,1.4,"Khas Bandung","tape tapai singkong"],
+ ["Kue balok 1 buah",180,3,"Khas Bandung"],
+ ["Bandros 2 buah",150,2,"Khas Bandung"],
+ ["Awug 1 potong",200,2,"Khas Bandung"],
+ ["Pisang bolen 1 buah",230,3,"Khas Bandung","bolen"],
+ ["Brownies kukus 1 potong",180,2.5,"Khas Bandung"],
+ ["Odading 1 buah",180,3,"Khas Bandung","roti goreng"],
  // ayam & daging
  ["Dada ayam panggang 100 g",165,31,"Ayam & Daging"],["Ayam bakar 1 potong",200,25,"Ayam & Daging"],
  ["Ayam goreng biasa 1 potong",260,22,"Ayam & Daging"],["Ayam goreng tepung 1 potong",320,20,"Ayam & Daging"],
  ["Ayam geprek 1 porsi",350,25,"Ayam & Daging"],["Sate ayam 10 tusuk",400,32,"Ayam & Daging"],
  ["Ayam suwir kecap 1 porsi",180,22,"Ayam & Daging"],["Rendang 1 potong",250,15,"Ayam & Daging"],
- ["Empal daging 1 potong",220,18,"Ayam & Daging"],["Bakso sapi 1 butir",30,2,"Ayam & Daging"],
+ ["Empal daging 1 potong",220,18,"Ayam & Daging"],["Bakso sapi 1 butir",30,2,"Ayam & Daging","baso"],
  ["Sosis 1 buah",100,5,"Ayam & Daging"],["Kulit ayam goreng 1 potong",120,4,"Ayam & Daging"],
  // telur
  ["Telur rebus 1 butir",78,6.3,"Telur"],["Telur ceplok 1 butir",110,6.5,"Telur"],
@@ -864,16 +900,16 @@ const FOOD=[
  // sayur
  ["Tumis kangkung 1 porsi",70,2,"Sayur"],["Capcay kuah 1 porsi",90,4,"Sayur"],
  ["Sayur asem 1 mangkuk",60,2,"Sayur"],["Sayur bening bayam 1 mangkuk",45,2.5,"Sayur"],
- ["Sayur lodeh 1 mangkuk",130,3,"Sayur"],["Gado-gado tanpa lontong",280,12,"Sayur"],
+ ["Sayur lodeh 1 mangkuk",130,3,"Sayur"],["Gado-gado tanpa lontong",280,12,"Sayur","lotek"],
  ["Urap sayur 1 porsi",120,4,"Sayur"],["Lalapan mentah 1 porsi",25,1.5,"Sayur"],
  ["Brokoli/buncis rebus 100 g",35,2.8,"Sayur"],["Salad sayur tanpa dressing",40,2,"Sayur"],
  ["Daun singkong 1 porsi",60,4,"Sayur"],["Tumis buncis 1 porsi",70,2.5,"Sayur"],
  // kuah
- ["Soto ayam 1 mangkuk (tanpa nasi)",200,18,"Berkuah"],["Bakso kuah 1 mangkuk",250,15,"Berkuah"],
+ ["Soto ayam 1 mangkuk (tanpa nasi)",200,18,"Berkuah"],["Bakso kuah 1 mangkuk",250,15,"Berkuah","baso"],
  ["Sop ayam bening 1 mangkuk",180,16,"Berkuah"],["Rawon 1 mangkuk",250,18,"Berkuah"],
  ["Kuah santan 1 sendok sayur",90,1,"Berkuah"],
  // gorengan & tambahan
- ["Bakwan 1 buah",130,2,"Gorengan"],["Tahu isi 1 buah",130,3,"Gorengan"],
+ ["Bakwan 1 buah",130,2,"Gorengan","bala-bala balabala"],["Tahu isi 1 buah",130,3,"Gorengan","gehu"],
  ["Pisang goreng 1 buah",150,1.5,"Gorengan"],["Risoles 1 buah",160,4,"Gorengan"],
  ["Kerupuk 5 buah",80,1,"Gorengan"],["Emping 1 genggam",90,1.5,"Gorengan"],
  ["Perkedel 1 buah",110,3,"Gorengan"],["Cireng 3 buah",140,2,"Gorengan"],
@@ -892,8 +928,49 @@ const FOOD=[
  ["Susu low-fat 250 ml",120,8.5,"Minuman"],["Susu full cream 250 ml",150,8,"Minuman"],
  ["Yogurt plain 1 cup",120,10,"Minuman"],["Jus buah kemasan 1 botol",180,1,"Minuman"],
  ["Soda 1 kaleng",140,0,"Minuman"],["Air kelapa 1 gelas",45,0.5,"Minuman"],
- ["Susu kental manis 2 sdm",130,1.5,"Minuman"]
-].map(x=>({n:x[0],k:x[1],p:x[2],c:x[3]}));
+ ["Susu kental manis 2 sdm",130,1.5,"Minuman"],
+ // tambahan karbo
+ ["Nasi goreng 1 porsi",600,14,"Karbo"],["Kwetiau goreng 1 porsi",400,10,"Karbo"],
+ ["Makaroni goreng 1 porsi",320,8,"Karbo","macaroni"],
+ ["Makaroni schotel 1 potong",250,10,"Karbo","macaroni skotel"],
+ ["Nasi kuning 1 porsi",300,6,"Karbo"],["Ketupat 1 buah",90,1.7,"Karbo","kupat"],
+ ["Roti bakar 2 lembar + selai",300,6,"Karbo"],
+ // tambahan berkuah
+ ["Mie ayam 1 mangkuk",450,18,"Berkuah","mi ayam"],
+ ["Sop makaroni 1 mangkuk",250,9,"Berkuah","macaroni"],
+ ["Soto mie 1 mangkuk",350,15,"Berkuah"],["Lontong sayur 1 porsi",350,8,"Berkuah"],
+ ["Gulai kambing 1 mangkuk",300,18,"Berkuah"],["Sop iga 1 mangkuk",300,20,"Berkuah"],
+ // tambahan ayam & daging
+ ["Sate kambing 10 tusuk",450,30,"Ayam & Daging"],["Ayam pop 1 potong",180,24,"Ayam & Daging"],
+ ["Dendeng balado 1 potong",230,16,"Ayam & Daging"],["Ati ampela 1 porsi",120,12,"Ayam & Daging"],
+ ["Usus goreng 1 porsi",180,8,"Ayam & Daging"],
+ // tambahan ikan
+ ["Gurame bakar 1 potong",180,24,"Ikan"],["Ikan peda 1 potong",100,13,"Ikan"],
+ ["Cumi goreng tepung 100 g",220,16,"Ikan"],["Bandeng presto 1 potong",170,20,"Ikan"],
+ // tambahan tahu & tempe
+ ["Pepes tahu 1 bungkus",90,7,"Tahu & Tempe"],["Tahu gejrot 1 porsi",120,5,"Tahu & Tempe"],
+ ["Kering tempe 1 sdm besar",110,5,"Tahu & Tempe"],
+ // tambahan sayur
+ ["Ketoprak 1 porsi",450,13,"Sayur"],["Terong balado 1 porsi",120,2,"Sayur"],
+ ["Tumis toge tahu 1 porsi",80,5,"Sayur","tauge"],["Sayur nangka 1 porsi",180,4,"Sayur"],
+ ["Semur jengkol 1 porsi",180,5,"Sayur"],["Pete 10 biji",90,5,"Sayur","petai"],
+ ["Asinan sayur 1 porsi",150,4,"Sayur"],
+ // tambahan gorengan
+ ["Cakwe 1 buah",120,2,"Gorengan"],["Molen 1 buah",150,2,"Gorengan"],
+ // tambahan buah & snack
+ ["Makaroni pedas kering 1 bungkus",200,3,"Buah & Snack","macaroni"],
+ ["Seblak kering 1 bungkus",210,3,"Buah & Snack"],
+ ["Ubi cilembu 1 buah",190,2,"Buah & Snack","boled"],
+ ["Strawberry 1 mangkuk",50,1,"Buah & Snack","stroberi arbei"],
+ ["Jambu biji 1 buah",70,1,"Buah & Snack"],["Salak 3 buah",60,0.8,"Buah & Snack"],
+ ["Kacang rebus 1 genggam",120,6,"Buah & Snack"],
+ // tambahan minuman
+ ["Es cendol 1 gelas",250,1.5,"Minuman","dawet"],["Es goyobod 1 gelas",280,2,"Minuman"],
+ ["Es doger 1 gelas",250,2,"Minuman"],["Bandrek 1 gelas",150,0.5,"Minuman"],
+ ["Bajigur 1 gelas",200,1.5,"Minuman"],["Es jeruk manis 1 gelas",110,1,"Minuman"],
+ ["Susu kedelai 250 ml",110,7,"Minuman"],["Yoghurt botol 1 botol",130,5,"Minuman"],
+ ["Kopi susu gula aren 1 cup",250,4,"Minuman"]
+].map(x=>({n:x[0],k:x[1],p:x[2],c:x[3],a:(x[4]||"").toLowerCase()}));   // a = nama lain untuk pencarian
 const KATEGORI=[...new Set(FOOD.map(f=>f.c))];
 const TARGET_K=1700, TARGET_P=125;
 const TARGET_PCT=70;               // ambang sebuah hari dihitung konsisten
@@ -1249,10 +1326,10 @@ function renderFm(){
     cb.appendChild(b);
   });
   const q=fmQ.toLowerCase();
-  const list=FOOD.filter(f=>(fmCat==="Semua"||f.c===fmCat)&&(!q||f.n.toLowerCase().includes(q)));
+  const list=FOOD.filter(f=>(fmCat==="Semua"||f.c===fmCat)&&cocokFood(f,q));
   const fl=$("#fmList"); fl.innerHTML="";
   if(!list.length){ fl.innerHTML='<div class="empty">Tidak ketemu. Coba kata lain, atau pilih yang paling mirip.</div>'; return; }
-  list.slice(0,120).forEach(f=>{
+  list.slice(0,200).forEach(f=>{
     const el=document.createElement("div"); el.className="fi";
     el.innerHTML=`<div class="fn">${f.n}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
     el.onclick=()=>addFood(f.n,fmSlot);
@@ -1394,6 +1471,8 @@ function chgQty(i,d){
   save(); renderCustom(); renderToday();
 }
 function foodBy(n){ return FOOD.find(f=>f.n===n); }
+/* cocok kalau kata kunci ada di nama atau di nama lainnya (bala-bala, gehu, baso…) */
+function cocokFood(f,q){ return !q || f.n.toLowerCase().includes(q) || f.a.includes(q); }
 
 function renderCustom(){
   const e=eatenList();
@@ -1446,10 +1525,10 @@ function renderCustom(){
   });
 
   const q=fQ.toLowerCase();
-  const list=FOOD.filter(f=>(fCat==="Semua"||f.c===fCat)&&(!q||f.n.toLowerCase().includes(q)));
+  const list=FOOD.filter(f=>(fCat==="Semua"||f.c===fCat)&&cocokFood(f,q));
   const fl=$("#flist"); fl.innerHTML="";
   if(!list.length){ fl.innerHTML='<div class="empty">Tidak ketemu. Coba kata lain, atau pilih yang paling mirip.</div>'; }
-  list.slice(0,120).forEach(f=>{
+  list.slice(0,200).forEach(f=>{
     const el=document.createElement("div"); el.className="fi";
     el.innerHTML=`<div class="fn">${f.n}</div><div class="fk">${f.k} kkal · ${f.p} g</div><div class="add">+</div>`;
     el.onclick=()=>addFood(f.n);
