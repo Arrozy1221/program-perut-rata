@@ -417,10 +417,11 @@
   .fnote.awasnote{background:var(--turmeric-dim);color:#8A6316}
   .fnote .alasan{display:block;font-weight:500;margin-top:3px}
   .awas{
-    display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
-    background:var(--turmeric);color:#3B2A05;font-size:10px;font-weight:700;
-    vertical-align:1px;flex-shrink:0;
+    display:inline-block;padding:1px 7px;border-radius:99px;
+    background:var(--turmeric);color:#3B2A05;font-size:9.5px;font-weight:700;
+    letter-spacing:.05em;text-transform:uppercase;vertical-align:1px;white-space:nowrap;
   }
+  .awas + .awas{margin-left:3px}
   .dawas{
     margin-top:9px;padding:8px 10px;border-radius:9px;
     background:var(--turmeric-dim);color:#8A6316;font-size:11.5px;line-height:1.45;
@@ -1078,11 +1079,11 @@ const KATEGORI=[...new Set(FOOD.map(f=>f.c))];
 /* ===== PERINGATAN MAKANAN =====
    Kode singkat -> alasannya. Satu makanan boleh punya lebih dari satu kode. */
 const AWAS={
-  g:"Digoreng \u2014 minyaknya bikin kalori melonjak.",
-  m:"Gulanya tinggi. Ini yang paling gampang menjebol defisit.",
-  i:"Instan: natriumnya tinggi, proteinnya sedikit.",
-  s:"Santan kental \u2014 lemak jenuhnya banyak.",
-  k:"Kalori padat tapi protein rendah, cepat lapar lagi."
+  g:{lab:"gorengan", txt:"Digoreng, minyaknya bikin kalori melonjak."},
+  m:{lab:"manis",    txt:"Gulanya tinggi. Ini yang paling gampang menjebol defisit."},
+  i:{lab:"instan",   txt:"Instan: natriumnya tinggi, proteinnya sedikit."},
+  s:{lab:"santan",   txt:"Santan kental, lemak jenuhnya banyak."},
+  k:{lab:"berat",    txt:"Kalori padat tapi protein rendah, cepat lapar lagi."}
 };
 const TANDA={};
 const tandai=(kode,...nama)=>nama.forEach(n=>TANDA[n]=kode);
@@ -1124,18 +1125,25 @@ tandai("k",
 tandai("ik","Mie instan + nasi \u00bd porsi");
 tandai("gm","Onde-onde 1 buah","Kue cucur 1 buah","Snack box kantor (kue + gorengan)");
 
-/* alasan lengkap sebuah makanan, kosong kalau aman */
-function peringatan(f){
-  const k=f&&TANDA[f.n]; if(!k) return "";
-  return k.split("").map(c=>AWAS[c]).filter(Boolean).join(" ");
+/* kode peringatan sebuah makanan, kosong kalau aman */
+function kodeAwas(f){
+  return ((f&&TANDA[f.n])||"").split("").filter(c=>AWAS[c]);
 }
-const lencanaAwas=f=>peringatan(f)?' <span class="awas" title="Perlu diwaspadai">!</span>':"";
-/* alasan gabungan beberapa makanan — kodenya yang disatukan, supaya
+/* alasan lengkap sebuah makanan */
+function peringatan(f){
+  return kodeAwas(f).map(c=>AWAS[c].txt).join(" ");
+}
+/* lencana yang langsung menyebut alasannya, bukan sekadar tanda seru */
+function lencanaAwas(f){
+  return kodeAwas(f).map(c=>
+    ` <span class="awas" title="${AWAS[c].txt}">${AWAS[c].lab}</span>`).join("");
+}
+/* alasan gabungan beberapa makanan: kodenya yang disatukan, supaya
    alasan yang sama tidak muncul dua kali. */
 function alasanGabungan(daftarNama){
   const kode=new Set();
   daftarNama.forEach(n=>(TANDA[n]||"").split("").forEach(c=>{ if(AWAS[c]) kode.add(c); }));
-  return [...kode].map(c=>AWAS[c]).join(" ");
+  return [...kode].map(c=>AWAS[c].txt).join(" ");
 }
 const TARGET_K=1700, TARGET_P=125;
 const TARGET_PCT=70;               // ambang sebuah hari dihitung konsisten
@@ -1420,6 +1428,8 @@ function mealDetail(m){
     el.innerHTML=`<div class="dlab">Saran menu</div>
       <div class="dtit">${s.t}</div>
       <div class="macros"><span class="chip">${s.k} kkal</span><span class="chip p">${s.p} g protein</span></div>
+      <div class="where"><span class="pin">📍</span><div><b>Beli di:</b> ${s.w}</div></div>
+      ${s.a&&s.a!=="—"?`<div class="avoid">✕ ${s.a}</div>`:""}
       <div class="dact"><button class="dbtn" type="button">↻ Ganti saran</button><button class="dbtn go" type="button">Isi sendiri</button></div>`;
     const [ganti,sendiri]=el.querySelectorAll(".dbtn");
     ganti.onclick=()=>{ dd.m[m.slot]=(dd.m[m.slot]||0)+1; save(); renderMenu(); renderToday(); };
@@ -1504,7 +1514,8 @@ function renderFm(){
     el.onclick=()=>{
       const s=addFood(f.n,fmSlot), w=peringatan(f), nt=$("#fmNote");
       nt.className="fnote"+(w?" awasnote":"");
-      nt.innerHTML=(w?"⚠ ":"✓ ")+f.n+" masuk ke "+s+(w?`<span class="alasan">${w}</span>`:"");
+      nt.innerHTML=(w?"⚠ ":"✓ ")+f.n+lencanaAwas(f)+" masuk ke "+s
+        +(w?`<span class="alasan">${w}</span>`:"");
       nt.hidden=false;
     };
     fl.appendChild(el);
@@ -1686,7 +1697,7 @@ function renderCustom(){
       items.forEach(o=>{
         const f=foodBy(o.x.n); if(!f) return;
         const el=document.createElement("div"); el.className="eat";
-        el.innerHTML=`<div class="nm3">${f.n}<small>${Math.round(f.k*o.x.q)} kkal · ${(f.p*o.x.q).toFixed(1)} g protein</small></div>
+        el.innerHTML=`<div class="nm3">${f.n}${lencanaAwas(f)}<small>${Math.round(f.k*o.x.q)} kkal · ${(f.p*o.x.q).toFixed(1)} g protein</small></div>
           <select class="slotsel">${SLOTS.map(s=>`<option${s===o.x.s?" selected":""}>${s}</option>`).join("")}</select>
           <div class="qty"><button class="qb">−</button><span class="qv">${o.x.q}</span><button class="qb">+</button></div>`;
         const [minus,plus]=el.querySelectorAll(".qb");
