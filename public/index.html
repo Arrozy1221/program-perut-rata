@@ -210,6 +210,8 @@
   }
   .orow b{font-variant-numeric:tabular-nums}
   .dnote{font-size:11.5px;color:var(--stone);margin-top:9px;line-height:1.45}
+  .lvnote{font-size:11.5px;color:var(--stone);line-height:1.55;margin:-3px 0 10px}
+  .lvnote b{color:var(--ink-soft)}
 
   /* latihan kelewat */
   .miss{
@@ -584,6 +586,11 @@
     <div class="card" id="sumCard"></div>
 
     <div class="h2">Jadwal &amp; Checklist</div>
+    <div class="lvnote">
+      <b>Wajib</b> tidak bisa digantikan · <b>Disarankan</b> menambah hasil · <b>Opsional</b> kalau perlu saja.
+      Yang menurunkan berat itu <b>total kalori seharian</b>, bukan jam makannya — tiap makan boleh dilewat
+      asal jatah kalori dan proteinnya pindah ke waktu lain. Cek kartu Ringkasan untuk memastikan.
+    </div>
     <div id="tasks"></div>
 
     <div class="h2">Air Minum</div>
@@ -1238,43 +1245,44 @@ const TARGET_ML=2000, BOTOL_ML=800, GELAS_ML=250;   // air: target harian & ukur
 const SUSUL_HARI=5, SUSUL_MAX=2;   // batas kartu "latihan yang kelewat"
 
 function schedule(dow){
-  /* lv = seberapa penting baris ini untuk hasil programnya:
-     wajib      — langsung menentukan defisit kalori atau pemulihan
-     disarankan — menambah hasil, tapi bukan penentu
-     opsional   — kerjakan kalau perlu saja; lewati kalau tidak */
+  /* lv = seberapa menentukan baris ini untuk hasil programnya.
+     Yang benar-benar menurunkan berat itu total kalori sehari, bukan
+     jam makannya \u2014 jadi tiap makan sendiri-sendiri tidak wajib, boleh
+     dilewat asal jatahnya pindah ke waktu lain. Yang ditandai wajib
+     hanya yang tidak bisa digantikan: latihannya sendiri dan tidur. */
   const kerja = dow>=1 && dow<=5;
   if(kerja) return [
     {id:"bangun",tm:"05.15",t:"Bangun + 2 gelas air putih",lv:"disarankan",d:"Air dulu sebelum kopi. Bantu bangunin metabolisme."},
     {id:"latihan",tm:"05.00",t:"Plank 40 detik \u00d7 5",lv:"wajib",d:"Satu set tiap habis sholat: Subuh, Dzuhur, Ashar, Maghrib, Isya."},
-    {id:"sarapan",tm:"06.30",t:"Sarapan",lv:"wajib",d:"Lihat tab Menu untuk pilihan hari ini."},
+    {id:"sarapan",tm:"06.30",t:"Sarapan",lv:"disarankan",d:"Boleh dilewat kalau memang tidak lapar \u2014 asal jatah kalori dan proteinnya pindah ke makan berikutnya."},
     {id:"berangkat",tm:"07.00",t:"Berangkat kerja",lv:"opsional",d:"Kalau bisa, parkir agak jauh biar nambah langkah."},
-    {id:"siang",tm:"12.00",t:"Makan siang",lv:"wajib",d:"Nasi setengah porsi. Air putih, bukan es teh manis."},
+    {id:"siang",tm:"12.00",t:"Makan siang",lv:"disarankan",d:"Nasi setengah porsi. Air putih, bukan es teh manis."},
     {id:"jalan",tm:"12.40",t:"Jalan kaki 15 menit",lv:"disarankan",d:"Keliling MIM juga cukup. Bantu kontrol gula darah setelah makan."},
     {id:"snack",tm:"15.30",t:"Snack (kalau lapar)",lv:"opsional",d:"Jam paling rawan gorengan. Sudah siapkan dari rumah?"},
-    {id:"malam",tm:"18.30",t:"Makan malam",lv:"wajib",d:"Lauk + sayur, tanpa nasi. Jangan di-skip total."},
-    {id:"stop",tm:"21.00",t:"Stop makan",lv:"wajib",d:"Setelah ini air putih atau teh tawar saja."},
-    {id:"tidur",tm:"22.30",t:"Tidur",lv:"wajib",d:"Target 7 jam. Kurang tidur = besok lapar berlebihan."}
+    {id:"malam",tm:"18.30",t:"Makan malam",lv:"disarankan",d:"Tidak wajib jam segini, bahkan boleh dilewat. Tapi kalau dilewat, kalori dan protein hariannya biasanya jadi kurang \u2014 cek Ringkasan dulu."},
+    {id:"stop",tm:"21.00",t:"Stop makan",lv:"disarankan",d:"Bukan karena kalori malam bikin gemuk, tapi biar tidur nyenyak dan tidak keterusan ngemil."},
+    {id:"tidur",tm:"22.30",t:"Tidur",lv:"wajib",d:"Target 7 jam. Kurang tidur menaikkan hormon lapar, besoknya paling gampang jebol."}
   ];
   if(dow===0) return [
     {id:"bangun",tm:"06.00",t:"Bangun + air putih",lv:"disarankan",d:""},
-    {id:"sarapan",tm:"06.15",t:"Sarapan ringan",lv:"wajib",d:"Pisang + telur. Jangan main dengan perut kosong."},
+    {id:"sarapan",tm:"06.15",t:"Sarapan ringan",lv:"disarankan",d:"Pisang + telur. Jangan treadmill dengan perut benar-benar kosong."},
     {id:"latihan",tm:"07.00",t:"Treadmill interval 30 menit",lv:"wajib",d:"Treadmill rata. Plank tetap jalan tiap habis sholat."},
-    {id:"siang",tm:"12.00",t:"Makan siang",lv:"wajib",d:"Boleh porsi normal, tetap nasi setengah."},
+    {id:"siang",tm:"12.00",t:"Makan siang",lv:"disarankan",d:"Boleh porsi normal, tetap nasi setengah."},
     {id:"badminton",tm:"14.00",t:"Badminton",lv:"disarankan",d:"Main seperti biasa, 60\u201390 menit."},
     {id:"snack",tm:"15.30",t:"Snack",lv:"opsional",d:""},
-    {id:"malam",tm:"18.30",t:"Makan malam",lv:"wajib",d:"Lauk + sayur."},
+    {id:"malam",tm:"18.30",t:"Makan malam",lv:"disarankan",d:"Lauk + sayur. Habis badminton, proteinnya jangan dilewat."},
     {id:"timbang",tm:"20.00",t:"Rekap mingguan",lv:"disarankan",d:"Catat berat & lingkar perut di tab Progres."},
     {id:"tidur",tm:"22.30",t:"Tidur",lv:"wajib",d:"Besok Senin, plank lagi tiap habis sholat."}
   ];
   return [
     {id:"bangun",tm:"06.30",t:"Bangun + air putih",lv:"disarankan",d:""},
     {id:"latihan",tm:"07.00",t:"Treadmill 45 menit",lv:"wajib",d:"Jalan cepat konstan di treadmill rata. Plank tetap tiap habis sholat."},
-    {id:"sarapan",tm:"08.00",t:"Sarapan",lv:"wajib",d:"Weekend bukan alasan skip sarapan."},
-    {id:"siang",tm:"12.30",t:"Makan siang",lv:"wajib",d:"Nasi setengah porsi tetap berlaku."},
+    {id:"sarapan",tm:"08.00",t:"Sarapan",lv:"disarankan",d:"Weekend bukan alasan skip sarapan."},
+    {id:"siang",tm:"12.30",t:"Makan siang",lv:"disarankan",d:"Nasi setengah porsi tetap berlaku."},
     {id:"snack",tm:"16.00",t:"Snack",lv:"opsional",d:""},
-    {id:"malam",tm:"18.30",t:"Makan malam",lv:"wajib",d:"Lauk + sayur."},
-    {id:"stop",tm:"21.00",t:"Stop makan",lv:"wajib",d:""},
-    {id:"tidur",tm:"23.00",t:"Tidur",lv:"wajib",d:""}
+    {id:"malam",tm:"18.30",t:"Makan malam",lv:"disarankan",d:"Lauk + sayur. Boleh dilewat asal jatah hariannya sudah kekejar."},
+    {id:"stop",tm:"21.00",t:"Stop makan",lv:"disarankan",d:""},
+    {id:"tidur",tm:"23.00",t:"Tidur",lv:"wajib",d:"Target 7 jam."}
   ];
 }
 
