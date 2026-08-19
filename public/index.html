@@ -48,6 +48,18 @@
     border-bottom:4px solid var(--chili);
   }
   .hrow{display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+  .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+  .syncb{
+    display:flex;align-items:center;gap:6px;flex-shrink:0;
+    background:#1B2320;border:1px solid #2E3833;border-radius:99px;padding:5px 11px;
+    font-family:var(--body);font-size:11px;font-weight:600;color:#C9D0CB;cursor:pointer;
+  }
+  .syncb:hover{border-color:var(--turmeric);color:#fff}
+  .syncb .dot{width:7px;height:7px;border-radius:50%;background:#6B7671;flex-shrink:0}
+  .syncb.on .dot{background:#4FBF8B}
+  .syncb.err .dot{background:var(--chili)}
+  .syncb.busy .dot{background:var(--turmeric);animation:kedip 1s infinite}
+  @keyframes kedip{50%{opacity:.25}}
   .eyebrow{
     font-family:var(--body);font-size:10px;font-weight:600;
     letter-spacing:.18em;text-transform:uppercase;color:var(--turmeric);
@@ -451,6 +463,11 @@
   .dttl:empty{display:none}
   .dmsg{font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px}
   .dttl:empty + .dmsg{margin-top:0}
+  #dInput{
+    width:100%;margin-top:12px;padding:11px;border:1px solid var(--line);border-radius:9px;
+    font-family:var(--body);font-size:15px;background:#fff;color:var(--ink);
+  }
+  #dInput[hidden]{display:none}
   .dbtns{display:flex;gap:8px;margin-top:18px}
   .dbtns .btn{flex:1;padding:11px 12px}
 
@@ -480,9 +497,12 @@
 
 <header>
   <div class="wrap">
+    <div class="toprow">
+      <div class="eyebrow">Program Perut Rata</div>
+      <button class="syncb" id="syncBtn" type="button"><span class="dot"></span><span id="syncTxt">Sinkron mati</span></button>
+    </div>
     <div class="hrow">
       <div>
-        <div class="eyebrow">Program Perut Rata</div>
         <h1>90 Hari<br>Bakar Lemak</h1>
       </div>
       <div class="daybig">
@@ -688,6 +708,7 @@
   <div class="dcard" role="alertdialog" aria-modal="true" aria-labelledby="dTitle" aria-describedby="dBody">
     <div class="dttl" id="dTitle"></div>
     <div class="dmsg" id="dBody"></div>
+    <input type="text" id="dInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" hidden>
     <div class="dbtns">
       <button class="btn ghost" id="dCancel" hidden>Batal</button>
       <button class="btn" id="dOk">Oke</button>
@@ -1214,6 +1235,9 @@ const codeSet=v=>{ try{ localStorage.setItem("bp:code",normCode(v)); }catch(e){}
 
 function setMode(m){
   MODE=m;
+  if(!codeGet()) catSinkron("","Sinkron mati");
+  else if(m==="server") catSinkron("on","Tersinkron");
+  else catSinkron("err","Sinkron gagal");
   const el=document.getElementById("smode");
   if(!el) return;
   el.textContent = m==="server" ? "Tersinkron ke server \u2014 data sama di semua perangkat"
@@ -1239,27 +1263,33 @@ async function apiSet(data){
 }
 
 async function load(){
-  let got=null;
+  let lokal=null, server=null;
+  try{ const v=localStorage.getItem(KEY); if(v) lokal=JSON.parse(v); }catch(e){}
+  if(!lokal && window.storage){
+    try{ const r=await window.storage.get(KEY); if(r&&r.value) lokal=JSON.parse(r.value); }catch(e){}
+  }
   if(codeGet()){
-    try{ got=await apiGet(); if(got) setMode("server"); }
+    try{ server=await apiGet(); }
     catch(e){ console.warn("Sinkronisasi gagal, pakai data lokal.",e); }
   }
-  if(!got && window.storage){
-    try{ const r=await window.storage.get(KEY); if(r&&r.value){ got=JSON.parse(r.value); setMode("cloud"); } }catch(e){}
-  }
-  if(!got){
-    try{ const v=localStorage.getItem(KEY); if(v) got=JSON.parse(v); setMode(codeGet()?"server":"lokal"); }
-    catch(e){ setMode("memori"); }
-  }
+  /* yang penanda waktunya paling baru yang dipakai, jadi membuka di HP
+     atau laptop mana pun sama saja hasilnya. */
+  let got=lokal, dariServer=false;
+  if(server && (!lokal || (server.ts||0)>=(lokal.ts||0))){ got=server; dariServer=true; }
+  setMode(codeGet() ? (server?"server":"lokal") : (window.storage?"cloud":"lokal"));
+
   if(got) ST=got;
   if(!ST.settings) ST.settings={start:null,goal:66};
   if(!ST.settings.start) ST.settings.start=ymd(new Date());
   if(!ST.days) ST.days={};
   if(!ST.logs) ST.logs=[];
+  // punya perangkat ini lebih baru daripada server: dorong tanpa mengganggu
+  if(codeGet() && server && !dariServer) kirimDiam();
 }
 
 function save(){
   clearTimeout(saveT);
+  ST.ts=Date.now();                  // penanda waktu: dipakai memilih data terbaru antar perangkat
   saveT=setTimeout(async()=>{
     const s=JSON.stringify(ST);
     let local=false;
@@ -1271,6 +1301,45 @@ function save(){
     } else setMode(window.storage?"cloud":(local?"lokal":"memori"));
   },600);
 }
+
+/* ===== SINKRON OTOMATIS =====
+   Data ditarik ulang tiap kali aplikasi kembali ditampilkan, jadi buka
+   di perangkat mana pun langsung dapat yang terakhir tanpa menekan apa pun. */
+let sedangSinkron=false, tarikTerakhir=0;
+
+function catSinkron(kelas,teks){
+  const b=document.getElementById("syncBtn");
+  if(!b) return;
+  b.className="syncb"+(kelas?" "+kelas:"");
+  document.getElementById("syncTxt").textContent=teks;
+}
+
+function kirimDiam(){
+  if(!codeGet()) return;
+  apiSet(ST).then(ok=>setMode(ok?"server":"lokal")).catch(()=>{});
+}
+
+/* true = ada data baru yang masuk, false = sudah paling baru, null = gagal */
+async function tarikOtomatis(paksa){
+  if(!codeGet() || sedangSinkron) return false;
+  if(!paksa && Date.now()-tarikTerakhir<8000) return false;   // jangan bertubi-tubi
+  sedangSinkron=true; catSinkron("busy","Menyinkron\u2026");
+  try{
+    const server=await apiGet();
+    tarikTerakhir=Date.now();
+    let baru=false;
+    if(server && (server.ts||0)>(ST.ts||0)){    // hanya kalau server benar-benar lebih baru
+      ST=server; renderAll(); baru=true;
+    }
+    setMode("server");
+    return baru;
+  }catch(e){ catSinkron("err","Sinkron gagal"); return null; }
+  finally{ sedangSinkron=false; }
+}
+
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) tarikOtomatis(); });
+window.addEventListener("focus",()=>tarikOtomatis());
+window.addEventListener("online",()=>tarikOtomatis(true));
 
 /* ============================ RENDER ============================ */
 function dayIndex(d){
@@ -1899,7 +1968,7 @@ document.addEventListener("keydown",e=>{
 
 /* pengganti alert() & confirm() bawaan browser */
 let dRes=null;
-function dialog(judul,pesan,ok,batal){
+function dialog(judul,pesan,ok,batal,input){
   return new Promise(res=>{
     dRes=res;
     $("#dTitle").textContent=judul||"";
@@ -1907,8 +1976,11 @@ function dialog(judul,pesan,ok,batal){
     $("#dOk").textContent=ok||"Oke";
     const c=$("#dCancel");
     if(batal){ c.hidden=false; c.textContent=batal; } else c.hidden=true;
+    const inp=$("#dInput");
+    if(input){ inp.hidden=false; inp.value=input.value||""; inp.placeholder=input.placeholder||""; }
+    else inp.hidden=true;
     bukaModal("dmodal");
-    $("#dOk").focus();
+    (input?inp:$("#dOk")).focus();
   });
 }
 function jawab(v){ tutupModal("dmodal"); const r=dRes; dRes=null; if(r) r(v); }
@@ -1973,11 +2045,11 @@ $("#saveSet").onclick=()=>{
   const g=parseFloat($("#iGoal").value); if(!isNaN(g)) ST.settings.goal=g;
   save(); renderAll();
 };
-$("#saveCode").onclick=async()=>{
-  const c=normCode($("#iCode").value);
-  if(c && !CODE_RE.test(c)){ kabar(CODE_ERR,"Kode belum sesuai"); return; }
-  codeSet(c); $("#iCode").value=c;          // tampilkan bentuk yang benar-benar dipakai
+/* satu jalur aktivasi, dipakai tombol di header maupun di Pengaturan */
+async function aktifkanSinkron(c){
+  codeSet(c); $("#iCode").value=c;
   if(!c){ setMode("lokal"); kabar("Data tetap tersimpan di perangkat ini.","Sinkronisasi dimatikan"); return; }
+  catSinkron("busy","Menyinkron\u2026");
   try{
     const remote=await apiGet();
     if(remote && remote.days && Object.keys(remote.days).length){
@@ -1988,9 +2060,33 @@ $("#saveCode").onclick=async()=>{
     }
     const ok=await apiSet(ST);
     setMode(ok?"server":"lokal");
-    if(ok) kabar("Pakai kode yang sama di perangkat lain supaya datanya menyatu.","Sinkronisasi aktif");
+    if(ok) kabar("Mulai sekarang berjalan otomatis \u2014 tiap kali aplikasi dibuka, data terbaru langsung diambil. Pakai kode yang sama di perangkat lain.","Sinkronisasi aktif");
     else kabar("Data tetap aman tersimpan di perangkat ini.","Server belum siap");
   }catch(e){ setMode("lokal"); kabar("Data tetap tersimpan di perangkat ini.","Belum bisa terhubung"); }
+}
+
+$("#saveCode").onclick=()=>{
+  const c=normCode($("#iCode").value);
+  if(c && !CODE_RE.test(c)){ kabar(CODE_ERR,"Kode belum sesuai"); return; }
+  aktifkanSinkron(c);
+};
+
+$("#syncBtn").onclick=async()=>{
+  if(codeGet()){                                  // sudah aktif: tarik data terbaru sekarang
+    const hasil=await tarikOtomatis(true);
+    if(hasil===null) kabar("Cek koneksi internet, lalu coba lagi.","Gagal menyinkron");
+    else kabar(hasil?"Data terbaru dari perangkat lain sudah masuk."
+                    :"Data di perangkat ini sudah yang paling baru.","Tersinkron");
+    return;
+  }
+  const lanjut=await dialog("Sinkronisasi",
+    "Isi kode akses yang sama di HP dan laptop supaya datanya menyatu. Bebas pilih sendiri, misalnya <b>mst-2026</b>. Sesudah ini semuanya berjalan otomatis.",
+    "Aktifkan","Batal",{placeholder:"mst-2026"});
+  if(!lanjut) return;
+  const c=normCode($("#dInput").value);
+  if(!c){ kabar("Kode aksesnya masih kosong.","Belum diisi"); return; }
+  if(!CODE_RE.test(c)){ kabar(CODE_ERR,"Kode belum sesuai"); return; }
+  aktifkanSinkron(c);
 };
 $("#pullNow").onclick=async()=>{
   if(!codeGet()){
